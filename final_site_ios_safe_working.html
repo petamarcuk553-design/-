@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тренажёр по математике для 9 класса</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --bg-grid: rgba(25, 34, 62, 0.05);
+      --card: rgba(255, 255, 255, 0.92);
+      --card-strong: #ffffff;
+      --text: #1a2238;
+      --muted: #5e6472;
+      --line: #d9d4c7;
+      --accent: #1b263b;
+      --accent-2: #415a77;
+      --accent-3: #778da9;
+      --gold: #c49b3d;
+      --soft: #f7f4ee;
+      --ok: #1f7a4d;
+      --bad: #a63d40;
+      --shadow: 0 14px 34px rgba(27, 38, 59, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      background:
+        linear-gradient(var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px),
+        radial-gradient(circle at top, #faf8f2 0%, var(--bg) 52%, #efe9db 100%);
+      background-size: 28px 28px, 28px 28px, auto;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "∑  π  √x  y=ax²+bx+c  Δ  ∫  f(x)  x²+y²";
+      position: fixed;
+      inset: 18px auto auto 22px;
+      font-size: 18px;
+      letter-spacing: 10px;
+      color: rgba(27, 38, 59, 0.08);
+      pointer-events: none;
+      z-index: 0;
+      white-space: nowrap;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(196,155,61,0.24), transparent 30%),
+        linear-gradient(135deg, #132238, #213656 58%, #3b567d);
+      color: white;
+      padding: 40px 0 34px;
+      margin-bottom: 24px;
+      border-bottom: 4px solid rgba(196,155,61,0.45);
+      box-shadow: 0 20px 40px rgba(19, 34, 56, 0.18);
+    }
+
+    .header-math-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .axis-grid {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 52px 52px;
+      opacity: 0.5;
+    }
+
+    .header-graph {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.95;
+    }
+
+    .axis-line {
+      stroke: rgba(255,255,255,0.20);
+      stroke-width: 2;
+    }
+
+    .parabola-line {
+      fill: none;
+      stroke: rgba(196,155,61,0.95);
+      stroke-width: 4;
+      filter: drop-shadow(0 0 8px rgba(196,155,61,0.35));
+    }
+
+    .linear-line {
+      fill: none;
+      stroke: rgba(255,255,255,0.32);
+      stroke-width: 3;
+      stroke-dasharray: 10 10;
+    }
+
+    .graph-point {
+      fill: rgba(255,255,255,0.95);
+      stroke: rgba(196,155,61,0.95);
+      stroke-width: 2;
+    }
+
+    .graph-point.small {
+      fill: rgba(255,255,255,0.72);
+      stroke-width: 1.5;
+    }
+
+    .graph-label, .formula-label {
+      fill: rgba(255,255,255,0.72);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 20px;
+    }
+
+    .formula-label.alt {
+      fill: rgba(255,255,255,0.48);
+    }
+
+    .formula-cloud {
+      position: absolute;
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 20px;
+      letter-spacing: 4px;
+      color: rgba(255,255,255,0.12);
+      white-space: nowrap;
+    }
+
+    .formula-cloud-left {
+      left: 36px;
+      top: 22px;
+    }
+
+    .formula-cloud-right {
+      right: 24px;
+      bottom: 20px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero .badge {
+      display: inline-block;
+      width: fit-content;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      font-size: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+      letter-spacing: 0.3px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 50px);
+      line-height: 1.08;
+      max-width: 980px;
+      text-wrap: balance;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #e9edf5;
+      max-width: 900px;
+      font-size: 18px;
+      line-height: 1.55;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    nav {
+      position: sticky;
+      top: 10px;
+      z-index: 5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(217, 212, 199, 0.9);
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 28px rgba(27, 38, 59, 0.08);
+    }
+
+    button, select, input, textarea {
+      font: inherit;
+    }
+
+    input, select, textarea {
+      background: rgba(255,255,255,0.95);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--text);
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent-3);
+      box-shadow: 0 0 0 4px rgba(119, 141, 169, 0.18);
+    }
+
+    .nav-btn, .primary-btn, .secondary-btn {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 600;
+    }
+
+    .nav-btn:hover, .primary-btn:hover, .secondary-btn:hover, .option-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(27, 38, 59, 0.10);
+    }
+
+    .nav-btn, .secondary-btn {
+      background: linear-gradient(180deg, #ffffff, #f5f3ee);
+      color: var(--text);
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      border-color: rgba(27, 38, 59, 0.8);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, var(--accent), #243b5b);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .section {
+      display: none;
+      margin-bottom: 24px;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      header::after, body::before, .formula-cloud, .header-graph { display: none; }
+    }
+
+    .card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid rgba(217, 212, 199, 0.92);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(5px);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold), transparent 72%);
+      opacity: 0.9;
+    }
+
+    .card h2, .card h3, .card h4 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #faf8f3, #f0ebdf);
+      border: 1px solid #dfd6bf;
+      color: var(--accent);
+      margin-right: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 700;
+    }
+
+    .topic-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(249,246,239,0.96));
+      transform: rotate(-0.45deg);
+      border-radius: 10px 10px 22px 22px;
+      padding-top: 56px;
+      min-height: 290px;
+    }
+
+    .topic-card:nth-child(even) {
+      transform: rotate(0.45deg);
+    }
+
+    .topic-card::after {
+      content: "";
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(196,155,61,0.28), rgba(196,155,61,0.08));
+      box-shadow: inset 0 0 0 1px rgba(196,155,61,0.15);
+    }
+
+    .topic-card .topic-sheet-tag {
+      position: absolute;
+      top: 16px;
+      left: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      box-shadow: 0 8px 16px rgba(27, 38, 59, 0.08);
+    }
+
+    .topic-sheet-tag.algebra {
+      background: linear-gradient(135deg, #e7eef8, #dbe6f4);
+      color: #23406a;
+      border: 1px solid #bfd1ea;
+    }
+
+    .topic-sheet-tag.geometry {
+      background: linear-gradient(135deg, #edf3e5, #dfecd1);
+      color: #305b33;
+      border: 1px solid #c7dbae;
+    }
+
+    .topic-sheet-tag.exam {
+      background: linear-gradient(135deg, #fbf0d8, #f5e0ac);
+      color: #7a5610;
+      border: 1px solid #e4c775;
+    }
+
+    .topic-card .topic-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .progress-box {
+      background: linear-gradient(180deg, #ebe6da, #dfd8c8);
+      border-radius: 999px;
+      height: 13px;
+      overflow: hidden;
+      border: 1px solid #d8cfbe;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--gold), #e2ba5b, var(--accent-2));
+      box-shadow: inset 0 0 8px rgba(255,255,255,0.35);
+      transition: width .25s ease;
+    }
+
+    .lesson-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .example-box, .tip-box, .task-box {
+      border: 1px solid rgba(217, 212, 199, 0.95);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 12px;
+      background: var(--card-strong);
+      box-shadow: 0 8px 18px rgba(27, 38, 59, 0.04);
+    }
+
+    .example-box {
+      background: linear-gradient(180deg, #ffffff, #f9f7f2);
+      border-left: 5px solid var(--accent-3);
+    }
+
+    .tip-box {
+      background: linear-gradient(180deg, #fbfaf6, #f3eee3);
+      border-left: 5px solid var(--gold);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+    }
+
+    .task-box {
+      background: linear-gradient(180deg, #ffffff, #fbfaf7);
+      border-left: 5px solid var(--accent-2);
+    }
+
+    .task-box.correct {
+      border-color: #9dd6ba;
+      border-left-color: var(--ok);
+      background: linear-gradient(180deg, #f7fff8, #eefaf1);
+    }
+
+    .task-box.wrong {
+      border-color: #edb8b8;
+      border-left-color: var(--bad);
+      background: linear-gradient(180deg, #fff8f8, #fff0f0);
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .option-btn {
+      text-align: left;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #f7f3eb);
+      border-radius: 14px;
+      padding: 12px 14px;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .option-btn.selected {
+      border-color: var(--accent-2);
+      background: linear-gradient(180deg, #eef3fb, #dde8f6);
+      box-shadow: inset 0 0 0 1px rgba(65, 90, 119, 0.15);
+    }
+
+    .feedback.ok {
+      color: var(--ok);
+      font-weight: bold;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .feedback.bad {
+      color: var(--bad);
+      font-weight: bold;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .stat {
+      position: relative;
+      padding: 20px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,241,232,0.96));
+      border: 1px solid rgba(217, 212, 199, 0.95);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .stat::after {
+      content: "";
+      position: absolute;
+      right: -8px;
+      top: -8px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(196,155,61,0.20), transparent 70%);
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .stat .value {
+      font-size: 30px;
+      font-weight: bold;
+      margin-top: 8px;
+      color: var(--accent);
+    }
+
+    .teacher-row {
+      border: 1px solid rgba(217, 212, 199, 0.95);
+      border-radius: 20px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(247,243,234,0.96));
+      display: grid;
+      gap: 10px;
+      box-shadow: 0 10px 24px rgba(27, 38, 59, 0.06);
+    }
+
+    .footer-note {
+      margin: 30px 0 40px;
+      color: var(--muted);
+      font-size: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+      text-align: center;
+      padding: 16px 20px 26px;
+    }
+
+    .hidden { display: none; }
+
+    html, body {
+      -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
+    }
+
+    input, textarea, select {
+      font-size: 16px !important;
+      -webkit-appearance: none;
+      appearance: none;
+      border-radius: 14px;
+      autocapitalize: off;
+    }
+
+    button, .nav-btn, .primary-btn, .secondary-btn, .option-btn {
+      -webkit-appearance: none;
+      appearance: none;
+      touch-action: manipulation;
+      min-height: 48px;
+    }
+
+    .auto-next-hint {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: Arial, Helvetica, sans-serif;
+      margin-top: 6px;
+    }
+
+    .simple-math-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .simple-math-key {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #f7f3eb);
+      border-radius: 10px;
+      padding: 8px 12px;
+      min-height: 40px;
+      min-width: 44px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      body { padding-bottom: 84px; }
+      .container { width: min(100%, calc(100% - 20px)); }
+      nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        top: auto;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        z-index: 50;
+        padding: 10px;
+      }
+      nav .nav-btn { white-space: nowrap; flex: 0 0 auto; }
+      .simple-math-key { flex: 0 0 auto; }
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-math-layer">
+      <div class="axis-grid"></div>
+      <svg class="header-graph" viewBox="0 0 1200 320" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="curveGlow" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
+            <stop offset="100%" stop-color="rgba(196,155,61,0.55)"/>
+          </linearGradient>
+        </defs>
+        <line x1="140" y1="250" x2="1090" y2="250" class="axis-line"></line>
+        <line x1="610" y1="40" x2="610" y2="290" class="axis-line"></line>
+        <path d="M 320 235 Q 470 110 610 70 Q 760 110 905 235" class="parabola-line"></path>
+        <path d="M 170 230 L 980 95" class="linear-line"></path>
+        <circle cx="610" cy="70" r="7" class="graph-point"></circle>
+        <circle cx="470" cy="110" r="5" class="graph-point small"></circle>
+        <circle cx="760" cy="110" r="5" class="graph-point small"></circle>
+        <text x="1020" y="242" class="graph-label">x</text>
+        <text x="620" y="58" class="graph-label">y</text>
+        <text x="786" y="150" class="formula-label">y = ax² + bx + c</text>
+        <text x="845" y="118" class="formula-label alt">y = kx + b</text>
+      </svg>
+      <div class="formula-cloud formula-cloud-left">∑ &nbsp; π &nbsp; √x &nbsp; Δ &nbsp; x²+y²=r²</div>
+      <div class="formula-cloud formula-cloud-right">D=b²-4ac &nbsp; sinα &nbsp; cosβ &nbsp; ∫ f(x)</div>
+    </div>
+    <div class="container hero">
+      <span class="badge">Полноценный тренажёр · 9 класс</span>
+      <h1>Подготовка к экзамену по математике: теория, разбор, практика и экзаменационные задания</h1>
+      <p>Ученик может изучать теорию, разбирать примеры, выполнять тренировочные и экзаменационные задания. Учитель видит прогресс каждого ученика, количество попыток, точность и активность.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav>
+      <button class="nav-btn active" data-target="home">Главная</button>
+      <button class="nav-btn" data-target="student-login">Ученик</button>
+      <button class="nav-btn" data-target="teacher-login">Учитель</button>
+            <button class="nav-btn" data-target="final-tests">Финальные тесты</button>
+    </nav>
+
+    <section id="home" class="section active">
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>Как работает тренажёр</h2>
+          <div class="grid">
+            <div class="tip-box">1. Ученик выбирает раздел и изучает краткую теорию.</div>
+            <div class="tip-box">2. Затем разбирает готовые примеры по шагам.</div>
+            <div class="tip-box">3. После этого выполняет тренировочные и экзаменационные задания.</div>
+            <div class="tip-box">4. Сайт сохраняет прогресс, попытки и точность ответов.</div>
+            <div class="tip-box">5. Учитель видит результаты каждого ученика и общую статистику по разделам.</div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Какие разделы есть на сайте</h2>
+          <p class="muted">Разделы построены по твоим документам и экзаменационным сборникам.</p>
+          <div>
+            <span class="pill">Действия с числами</span>
+            <span class="pill">Функции</span>
+            <span class="pill">Проценты</span>
+            <span class="pill">Степени и корни</span>
+            <span class="pill">Квадратные уравнения</span>
+            <span class="pill">Системы уравнений</span>
+            <span class="pill">Неравенства</span>
+            <span class="pill">Геометрия</span>
+            <span class="pill">Экзамен №2</span>
+            <span class="pill">Геометрические тела</span>
+            <span class="pill">Задание 11</span>
+            <span class="pill">Задание 12</span>
+            <span class="pill">Финальные тесты</span>
+          </div>
+          <div style="margin-top:16px">
+            <button class="primary-btn" onclick="showSection('student-login')">Начать как ученик</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="student-login" class="section">
+      <div class="card">
+        <h2>Вход ученика</h2>
+        <p class="muted">Ученик входит под своим именем и выбирает класс.</p>
+        <div class="grid grid-3">
+          <input id="studentName" placeholder="Имя и фамилия" />
+          <select id="studentClass">
+            <option>9A</option>
+            <option>9B</option>
+            <option>9C</option>
+          </select>
+          <button class="primary-btn" onclick="loginStudent()">Войти в тренажёр</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="student-dashboard" class="section">
+      <div class="grid grid-4" style="margin-bottom:18px">
+        <div class="stat"><div class="label">Ученик</div><div class="value" id="statStudent">—</div></div>
+        <div class="stat"><div class="label">Прогресс</div><div class="value" id="statProgress">0%</div></div>
+        <div class="stat"><div class="label">Баллы</div><div class="value" id="statScore">0</div></div>
+        <div class="stat"><div class="label">Точность</div><div class="value" id="statAccuracy">0%</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px">
+        <h2>Разделы подготовки</h2>
+        <p class="muted">В каждом разделе есть: теория, разбор, практика и экзаменационные задания.</p>
+      </div>
+
+      <div id="topicsGrid" class="grid grid-3"></div>
+    </section>
+
+    <section id="lesson-view" class="section">
+      <div class="card">
+        <div class="lesson-title">
+          <div>
+            <h2 id="lessonTitle">Раздел</h2>
+            <div class="muted" id="lessonTheme">Тема</div>
+          </div>
+          <button class="secondary-btn" onclick="showSection('student-dashboard')">Назад</button>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:18px">
+        <div class="card">
+          <h3>Теория</h3>
+          <div id="lessonTheory"></div>
+        </div>
+        <div class="card">
+          <h3>Подсказка: как решать</h3>
+          <div id="lessonTips"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>Разобранные примеры</h3>
+        <div id="lessonExamples"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>Экзаменационные задания</h3>
+        <div id="lessonTasks"></div>
+      </div>
+    </section>
+
+    <section id="teacher-login" class="section">
+      <div class="card">
+        <h2>Вход учителя</h2>
+        <p class="muted">Демо-пароль: <strong>teacher123</strong></p>
+        <div class="grid grid-2">
+          <input id="teacherPassword" type="password" placeholder="Пароль учителя" />
+          <button class="primary-btn" onclick="loginTeacher()">Войти</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="teacher-dashboard" class="section">
+      <div class="grid grid-4" style="margin-bottom:18px">
+        <div class="stat"><div class="label">Всего учеников</div><div class="value" id="teacherStudents">0</div></div>
+        <div class="stat"><div class="label">Средний прогресс</div><div class="value" id="teacherAvgProgress">0%</div></div>
+        <div class="stat"><div class="label">Средняя точность</div><div class="value" id="teacherAvgAccuracy">0%</div></div>
+        <div class="stat"><div class="label">Всего разделов</div><div class="value" id="teacherTopicsCount">0</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Результаты учеников</h2>
+        <div id="teacherResults" class="grid"></div>
+      </div>
+    </section>
+
+
+    <section id="final-tests" class="section"></section>
+
+    <div class="footer-note">
+      Этот HTML-макет показывает полноценную структуру сайта-тренажёра: теория, практика, разбор, экзаменационные задания и контроль прогресса для учителя.
+    </div>
+  </main>
+
+  <script>
+    const TEACHER_PASSWORD = 'teacher123';
+    const STORAGE_KEY = 'math_exam_trainer_html_v1';
+
+    const LESSONS = [
+      {
+        id: 1,
+        title: 'Действия с действительными числами',
+        theme: 'Целые числа, дроби, степени, десятичные дроби',
+        theory: [
+          'Сложение и вычитание целых чисел удобно объяснять через правило «лифта»: прибавить — подняться, вычесть — спуститься.',
+          'Обыкновенные дроби сокращают, если числитель и знаменатель делятся на одно и то же число.',
+          'При умножении дробей умножают числители и знаменатели, при делении — умножают на обратную дробь.',
+          'Десятичную дробь переводят в обыкновенную через знаменатели 10, 100, 1000.'
+        ],
+        tips: [
+          'Сначала смотри на знак числа.',
+          'Перед умножением и делением дробей попробуй сократить.',
+          'При сложении дробей приводи к общему знаменателю.',
+          'Проверяй, можно ли перевести десятичное число в более простую дробь.'
+        ],
+        examples: [
+          { q: 'Пример: -8 + 5', s: ['Стартуем с числа -8.', 'Прибавить 5 — значит подняться на 5 единиц.', 'Получаем -3.'], a: '-3' },
+          { q: 'Пример: 12/18', s: ['Находим общий делитель 12 и 18.', 'Делим и числитель, и знаменатель на 6.', 'Получаем 2/3.'], a: '2/3' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Вычисли: -9 - 3', options: ['-12', '12', '-6', '6'], answer: '-12', explanation: 'От -9 спускаемся ещё на 3.' },
+          { type: 'choice', q: 'Сократи дробь 21/28', options: ['3/4', '4/3', '7/9', '2/3'], answer: '3/4', explanation: 'Делим числитель и знаменатель на 7.' },
+          { type: 'choice', q: 'Преобразуй 0,75 в обыкновенную дробь', options: ['3/4', '7/5', '75/10', '1/4'], answer: '3/4', explanation: '0,75 = 75/100 = 3/4.' },
+          { type: 'choice', q: 'Вычисли: 3/4 + 1/8', options: ['7/8', '1', '5/8', '3/8'], answer: '7/8', explanation: '3/4 = 6/8, значит 6/8 + 1/8 = 7/8.' },
+          { type: 'input', q: 'Реши: -7 + 10 = ?', answerText: '3', placeholder: 'Введите итоговый ответ', explanation: 'От -7 поднимаемся на 10 единиц и получаем 3.' }
+        ]
+      },
+      {
+        id: 2,
+        title: 'Линейная функция',
+        theme: 'Угловой коэффициент, нуль функции, монотонность',
+        theory: [
+          'Линейная функция имеет вид y = kx + b.',
+          'k — угловой коэффициент, он показывает, возрастает функция или убывает.',
+          'b — ордината точки пересечения графика с осью Oy.',
+          'Нуль функции находят из уравнения y = 0.'
+        ],
+        tips: [
+          'Если k > 0, функция строго возрастает.',
+          'Если k < 0, функция строго убывает.',
+          'Чтобы найти нуль функции, приравняй выражение к нулю.',
+          'Если нужно определить знак значения функции, мысленно поднимайся или опускайся от точки x к графику.'
+        ],
+        examples: [
+          { q: 'Пример: y = 2x - 5', s: ['Функция имеет вид y = kx + b.', 'Значит k = 2.', 'Так как 2 > 0, функция возрастает.'], a: 'k = 2, функция возрастает' },
+          { q: 'Пример: найти нуль функции y = x - 3', s: ['Приравниваем функцию к нулю: x - 3 = 0.', 'Отсюда x = 3.'], a: '3' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Угловой коэффициент функции y = -4x + 7 равен', options: ['-4', '7', '4', '-7'], answer: '-4', explanation: 'Коэффициент при x равен -4.' },
+          { type: 'choice', q: 'Функция y = 3x + 1 на всей области определения', options: ['строго возрастает', 'строго убывает', 'постоянна', 'не определена'], answer: 'строго возрастает', explanation: 'Потому что k = 3 > 0.' },
+          { type: 'choice', q: 'Нуль функции y = 2x + 6 равен', options: ['-3', '3', '-6', '6'], answer: '-3', explanation: 'Решаем 2x + 6 = 0.' },
+          { type: 'choice', q: 'Ордината пересечения графика y = 5x - 2 с осью Oy равна', options: ['-2', '5', '2', '0'], answer: '-2', explanation: 'При x = 0 получаем y = -2.' },
+          { type: 'input', q: 'Найди нуль функции y = x - 7', answerText: '7', placeholder: 'Введите итоговый ответ', explanation: 'Нуль функции находим из уравнения x - 7 = 0.' }
+        ]
+      },
+      {
+        id: 3,
+        title: 'Квадратичная функция',
+        theme: 'Парабола, количество корней, максимум и минимум',
+        theory: [
+          'Квадратичная функция имеет вид y = ax² + bx + c.',
+          'Если a > 0, ветви параболы направлены вверх.',
+          'Если a < 0, ветви направлены вниз.',
+          'Количество нулей функции зависит от дискриминанта.'
+        ],
+        tips: [
+          'Сначала смотри на знак a.',
+          'Для количества нулей исследуй дискриминант.',
+          'Если D > 0 — два нуля, D = 0 — один, D < 0 — нулей нет.',
+          'Если a > 0 — есть минимум, если a < 0 — максимум.'
+        ],
+        examples: [
+          { q: 'Пример: y = -x² + 4', s: ['Коэффициент a = -1.', 'Он отрицательный.', 'Значит, парабола направлена вниз и функция имеет максимум.'], a: 'максимум' },
+          { q: 'Пример: y = x² - 4x + 4', s: ['Рассматриваем уравнение x² - 4x + 4 = 0.', 'D = 16 - 16 = 0.', 'Функция имеет один нуль.'], a: '1 нуль' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Если в функции y = ax² + bx + c коэффициент a > 0, то ветви параболы направлены', options: ['вверх', 'вниз', 'вправо', 'влево'], answer: 'вверх', explanation: 'При a > 0 парабола открыта вверх.' },
+          { type: 'choice', q: 'Количество нулей функции y = x² - 9 равно', options: ['2', '1', '0', '3'], answer: '2', explanation: 'Уравнение x² - 9 = 0 имеет корни -3 и 3.' },
+          { type: 'choice', q: 'Функция y = -x² + 4 имеет', options: ['максимум', 'минимум', 'не имеет экстремума', 'только один корень'], answer: 'максимум', explanation: 'Так как a < 0.' },
+          { type: 'choice', q: 'Если D < 0, то функция имеет нулей', options: ['0', '1', '2', '3'], answer: '0', explanation: 'При отрицательном дискриминанте действительных нулей нет.' },
+          { type: 'input', q: 'Найди количество нулей функции y = x² - 4x + 4', answerText: '1', placeholder: 'Введите итоговый ответ', explanation: 'D = 16 - 16 = 0, значит один нуль.' }
+        ]
+      },
+      {
+        id: 4,
+        title: 'Проценты и прямая пропорциональность',
+        theme: 'Нахождение процентов, величины по процентам, пропорции',
+        theory: [
+          'Чтобы найти p% от числа, умножай число на p/100.',
+          'Чтобы найти число по его процентам, составь пропорцию.',
+          'Прямая пропорциональность: если одна величина увеличивается в несколько раз, другая тоже увеличивается во столько же раз.',
+          'В задачах удобно сначала находить 1%.'
+        ],
+        tips: [
+          'Сначала выясни: ищешь процент от числа или число по проценту.',
+          'Переводи проценты в дробь или десятичную запись.',
+          'В пропорциях располагай величины строго друг под другом.',
+          'В задачах на движение и массу проверь, что величины прямо пропорциональны.'
+        ],
+        examples: [
+          { q: 'Пример: 12% от 1000', s: ['1% от 1000 равен 10.', '12% — это 10 × 12.'], a: '120' },
+          { q: 'Пример: 20% от числа равны 72', s: ['Пусть число x.', 'Составляем 0,2x = 72.', 'Получаем x = 360.'], a: '360' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Найди 35% от 280 кг', options: ['98 кг', '85 кг', '105 кг', '70 кг'], answer: '98 кг', explanation: '0,35 × 280 = 98.' },
+          { type: 'choice', q: 'Найди число, если 12,5% от него равны 40', options: ['320', '160', '80', '500'], answer: '320', explanation: '12,5% = 1/8.' },
+          { type: 'choice', q: 'За 3 часа машина проехала 321 км. Сколько проедет за 8 часов с той же скоростью?', options: ['856', '963', '642', '428'], answer: '856', explanation: '321 : 3 = 107 км/ч, 107 × 8 = 856.' },
+          { type: 'choice', q: 'Цена товара была 4500 лей, скидка 675 лей. На сколько процентов снизилась цена?', options: ['15%', '10%', '12%', '18%'], answer: '15%', explanation: '675 / 4500 × 100% = 15%.' },
+          { type: 'input', q: 'Найди 25% от 56', answerText: '14', placeholder: 'Введите итоговый ответ', explanation: '25% — это четверть числа, 56 : 4 = 14.' }
+        ]
+      },
+      {
+        id: 5,
+        title: 'Степени и корни',
+        theme: 'Свойства степеней, корни, рационализация знаменателя',
+        theory: [
+          'При умножении степеней с одинаковым основанием показатели складываются.',
+          'При делении степеней с одинаковым основанием показатели вычитаются.',
+          'При возведении степени в степень показатели перемножаются.',
+          'Корень из произведения равен произведению корней, если выражения допустимы.'
+        ],
+        tips: [
+          'Пытайся привести выражения к одному основанию.',
+          'Перед вычислением корней выноси полный квадрат из-под знака корня.',
+          'Подобные радикалы складываются только после упрощения.',
+          'Чтобы избавиться от иррациональности в знаменателе, домножай на нужный корень.'
+        ],
+        examples: [
+          { q: 'Пример: 2³ · 2⁴', s: ['Основания одинаковые.', 'Складываем показатели: 3 + 4.'], a: '2⁷' },
+          { q: 'Пример: √12', s: ['Разлагаем 12 = 4 · 3.', 'Выносим √4 из-под знака корня.'], a: '2√3' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Вычисли: (3²)^4', options: ['3⁸', '3⁶', '9⁴', '12²'], answer: '3⁸', explanation: 'При возведении степени в степень показатели перемножаются.' },
+          { type: 'choice', q: 'Упрости: √75', options: ['5√3', '3√5', '15√5', '25√3'], answer: '5√3', explanation: '75 = 25 · 3.' },
+          { type: 'choice', q: 'Избавься от иррациональности в знаменателе: 1/√5', options: ['√5/5', '1/5', '5/√5', '√5'], answer: '√5/5', explanation: 'Домножаем на √5/√5.' },
+          { type: 'choice', q: 'Вычисли: 5⁰', options: ['1', '0', '5', '-1'], answer: '1', explanation: 'Любое ненулевое число в нулевой степени равно 1.' },
+          { type: 'input', q: 'Вычисли √49', answerText: '7', placeholder: 'Введите итоговый ответ', explanation: 'Арифметический квадратный корень из 49 равен 7.' }
+        ]
+      },
+      {
+        id: 6,
+        title: 'Квадратные уравнения',
+        theme: 'Коэффициенты, дискриминант, корни',
+        theory: [
+          'Уравнение вида ax² + bx + c = 0 называется квадратным, если a ≠ 0.',
+          'Дискриминант вычисляется по формуле D = b² - 4ac.',
+          'Если D > 0 — два корня, D = 0 — один, D < 0 — действительных корней нет.',
+          'Перед решением приводи уравнение к стандартному виду.'
+        ],
+        tips: [
+          'Сначала выпиши a, b, c.',
+          'Аккуратно считай квадрат коэффициента b.',
+          'Если D отрицательный, дальше корни в R не ищутся.',
+          'Проверь, можно ли разложить уравнение на множители.'
+        ],
+        examples: [
+          { q: 'Пример: x² - 5x + 6 = 0', s: ['a = 1, b = -5, c = 6.', 'D = 25 - 24 = 1.', 'x₁ = 2, x₂ = 3.'], a: '2 и 3' },
+          { q: 'Пример: x² + 4 = 0', s: ['a = 1, b = 0, c = 4.', 'D = 0 - 16 = -16.', 'На множестве действительных чисел решений нет.'], a: 'решений нет' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Дискриминант уравнения x² - 5x + 6 = 0 равен', options: ['1', '25', '-1', '5'], answer: '1', explanation: 'D = 25 - 24.' },
+          { type: 'choice', q: 'Сколько действительных корней имеет уравнение x² + 4 = 0?', options: ['0', '1', '2', '3'], answer: '0', explanation: 'D < 0.' },
+          { type: 'choice', q: 'Корни уравнения x² - 9 = 0', options: ['-3 и 3', '9 и -9', '0 и 9', 'только 3'], answer: '-3 и 3', explanation: 'x² = 9.' },
+          { type: 'choice', q: 'Если D = 0, квадратное уравнение имеет', options: ['1 корень', '2 разных корня', 'нет корней', '3 корня'], answer: '1 корень', explanation: 'При D = 0 корни совпадают.' },
+          { type: 'input', q: 'Найди меньший корень уравнения x² - 5x + 6 = 0', answerText: '2', placeholder: 'Введите итоговый ответ', explanation: 'Разложим: (x - 2)(x - 3) = 0.' }
+        ]
+      },
+      {
+        id: 7,
+        title: 'Системы уравнений',
+        theme: 'Текстовые задачи и составление систем',
+        theory: [
+          'Сначала вводят неизвестные и записывают, что обозначает каждая буква.',
+          'Потом составляют два уравнения по условию задачи.',
+          'После этого решают систему методом сложения или подстановки.',
+          'В конце обязательно записывают ответ по смыслу задачи.'
+        ],
+        tips: [
+          'Слова «на 8 больше» переводятся как +8.',
+          'Слова «в 2 раза меньше» переводятся как деление на 2.',
+          'Проверяй, какое именно количество относится к каждому объекту.',
+          'После получения чисел возвращайся к вопросу задачи.'
+        ],
+        examples: [
+          { q: 'Пример: одно число на 8 больше другого, сумма равна 23', s: ['Пусть x и y — числа.', 'Составляем систему: x + y = 23, x = y + 8.', 'Решаем и получаем 15 и 8.'], a: '15 и 8' },
+          { q: 'Пример: 27 команд и 380 спортсменов', s: ['Пусть x — футбольные, y — баскетбольные команды.', 'Составляем систему: x + y = 27, 20x + 10y = 380.', 'Получаем x = 11, y = 16.'], a: '11 и 16' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'В спортивном фестивале всего участвовало футбольных команд', options: ['11', '16', '10', '17'], answer: '11', explanation: 'Из системы x + y = 27 и 20x + 10y = 380.' },
+          { type: 'choice', q: 'Тест содержит задания по 4 и 5 баллов. Решено 12 заданий и набрано 53 балла. Сколько задач по 5 баллов?', options: ['5', '4', '7', '8'], answer: '5', explanation: 'Решаем систему: x + y = 12, 4x + 5y = 53.' },
+          { type: 'choice', q: 'В двух пеналах было 24 ручки. В первом сначала было', options: ['20', '4', '18', '12'], answer: '20', explanation: 'После переноса 2 ручек получаем систему уравнений.' },
+          { type: 'choice', q: 'Лодка с 20 мешками весит 1200 кг, а с 25 мешками — 1425 кг. Масса одного мешка', options: ['45 кг', '25 кг', '60 кг', '75 кг'], answer: '45 кг', explanation: 'Разность 225 кг соответствует 5 мешкам.' },
+          { type: 'input', q: 'Найди число баскетбольных команд, если всего 27 команд, а футбольных 11', answerText: '16', placeholder: 'Введите итоговый ответ', explanation: '27 - 11 = 16.' }
+        ]
+      },
+      {
+        id: 8,
+        title: 'Конвертер и неравенства',
+        theme: 'Перевод текста в математическую запись',
+        theory: [
+          'Фразы «не более», «не меньше», «не превосходит» нужно переводить в математические символы.',
+          'Линейное неравенство решается так же, как уравнение, но при делении на отрицательное число знак меняется.',
+          'Ответ часто записывают в виде интервала.',
+          'В задачах на область определения часто нужно решать неравенство.'
+        ],
+        tips: [
+          '«Не более» = ≤.',
+          '«Не меньше» = ≥.',
+          'При делении на отрицательное число знак неравенства обязательно меняется.',
+          'Проверяй, включается ли граница в интервал.'
+        ],
+        examples: [
+          { q: 'Пример: 2x - 6 > 0', s: ['Переносим -6 вправо.', 'Получаем 2x > 6.', 'Делим на 2 и получаем x > 3.'], a: '(3; +∞)' },
+          { q: 'Пример: -3x + 9 > 0', s: ['Получаем -3x > -9.', 'Делим на -3.', 'Знак меняется: x < 3.'], a: '(-∞; 3)' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Фразе «не более 5» соответствует запись', options: ['x ≤ 5', 'x ≥ 5', 'x < 5', 'x > 5'], answer: 'x ≤ 5', explanation: '«Не более» означает меньше или равно.' },
+          { type: 'choice', q: 'Реши: 5 - 2x > 1', options: ['x < 2', 'x > 2', 'x ≤ 2', 'x ≥ 2'], answer: 'x < 2', explanation: 'После деления на -2 знак меняется.' },
+          { type: 'choice', q: 'Интервал решения неравенства x > 3', options: ['(3; +∞)', '[3; +∞)', '(-∞; 3)', '(-∞; 3]'], answer: '(3; +∞)', explanation: '3 не входит в решение.' },
+          { type: 'choice', q: 'Фразе «не меньше, чем -4» соответствует запись', options: ['x ≥ -4', 'x ≤ -4', 'x > -4', 'x < -4'], answer: 'x ≥ -4', explanation: '«Не меньше» означает больше или равно.' },
+          { type: 'input', q: 'Найди правую границу решения неравенства -3x + 9 > 0', answerText: '3', placeholder: 'Введите итоговый ответ', explanation: 'Получаем x < 3.' }
+        ]
+      },
+      {
+        id: 9,
+        title: 'Геометрия. Теорема Пифагора и углы',
+        theme: 'Прямоугольный треугольник, параллельные прямые, сумма углов',
+        theory: [
+          'В прямоугольном треугольнике квадрат гипотенузы равен сумме квадратов катетов.',
+          'В равнобедренном прямоугольном треугольнике острые углы по 45°.',
+          'Если прямые параллельны, то накрест лежащие углы равны, а односторонние в сумме дают 180°.',
+          'Сумма внутренних углов треугольника равна 180°.'
+        ],
+        tips: [
+          'Сначала определи, где гипотенуза, а где катеты.',
+          'Если ищешь сторону, сначала запиши теорему Пифагора.',
+          'При углах внимательно смотри, какие они: внутренние, внешние, односторонние, накрест лежащие.',
+          'В равнобедренном треугольнике углы при основании равны.'
+        ],
+        examples: [
+          { q: 'Пример: катеты 3 и 4', s: ['Пишем: x² = 3² + 4².', 'x² = 9 + 16 = 25.', 'x = 5.'], a: '5' },
+          { q: 'Пример: в треугольнике углы 60° и 40°', s: ['Сумма углов 180°.', 'x = 180° - 100°.'], a: '80°' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'В прямоугольном треугольнике катеты 3 и 4. Гипотенуза равна', options: ['5', '6', '7', '25'], answer: '5', explanation: '3² + 4² = 25.' },
+          { type: 'choice', q: 'Сумма внутренних углов треугольника равна', options: ['180°', '90°', '360°', '270°'], answer: '180°', explanation: 'Это основное свойство треугольника.' },
+          { type: 'choice', q: 'Если прямые a и b параллельны, а секущая образует внутренние односторонние углы, то их сумма равна', options: ['180°', '90°', '360°', '120°'], answer: '180°', explanation: 'Односторонние внутренние углы в сумме дают 180°.' },
+          { type: 'choice', q: 'В равнобедренном прямоугольном треугольнике острые углы равны', options: ['45°', '30°', '60°', '15°'], answer: '45°', explanation: 'Острые углы равны и в сумме дают 90°.' },
+          { type: 'input', q: 'Найди гипотенузу прямоугольного треугольника с катетами 5 и 12', answerText: '13', placeholder: 'Введите итоговый ответ', explanation: '5² + 12² = 25 + 144 = 169, значит гипотенуза 13.' }
+        ]
+      },
+      {
+        id: 10,
+        title: 'Геометрические тела',
+        theme: 'Куб, параллелепипед, цилиндр, конус, шар',
+        theory: [
+          'Куб: V = a³, A = 6a².',
+          'Прямоугольный параллелепипед: V = abc, A = 2(ab + bc + ac).',
+          'Цилиндр: V = πr²h, A = 2πr(r + h).',
+          'Конус: V = (1/3)πr²h, A = πr(r + l), где l — образующая.',
+          'Шар: V = (4/3)πr³, A = 4πr².'
+        ],
+        tips: [
+          'Сначала определи, о каком теле идёт речь и какую величину нужно найти: A или V.',
+          'Для полной поверхности всегда учитывай все основания и боковую поверхность.',
+          'В задачах на конус не путай высоту h и образующую l.',
+          'Если дана площадь поверхности или объём, сначала подставь формулу, а затем решай уравнение.',
+          'В ответах с π не раскрывай его в десятичную дробь, если этого не требуют.'
+        ],
+        examples: [
+          { q: 'Пример: объём куба со стороной 4 см', s: ['Используем формулу V = a³.', 'Подставляем a = 4.', 'Получаем V = 4³ = 64 см³.'], a: '64 см³' },
+          { q: 'Пример: объём цилиндра при r = 2 см и h = 5 см', s: ['Используем формулу V = πr²h.', 'Подставляем r = 2 и h = 5.', 'Получаем V = π · 4 · 5 = 20π см³.'], a: '20π см³' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Найдите объём куба со стороной 4 см', options: ['16', '32', '64', '128'], answer: '64', explanation: 'V = a³ = 4³ = 64.' },
+          { type: 'choice', q: 'Найдите площадь полной поверхности куба со стороной 3 см', options: ['18', '27', '36', '54'], answer: '54', explanation: 'A = 6a² = 6 · 9 = 54.' },
+          { type: 'choice', q: 'Цилиндр: r = 2 см, h = 5 см. Найдите объём', options: ['10π', '20π', '40π', '50π'], answer: '20π', explanation: 'V = πr²h = π · 4 · 5 = 20π.' },
+          { type: 'choice', q: 'Найдите площадь поверхности шара радиуса 3 см', options: ['12π', '24π', '36π', '48π'], answer: '36π', explanation: 'A = 4πr² = 4π · 9 = 36π.' },
+          { type: 'choice', q: 'Найдите объём конуса при r = 3 см, h = 4 см', options: ['12π', '24π', '36π', '48π'], answer: '12π', explanation: 'V = (1/3)πr²h = (1/3)π · 9 · 4 = 12π.' },
+          { type: 'choice', q: 'Найдите объём цилиндра при r = 3 см, h = 4 см', options: ['12π', '24π', '36π', '48π'], answer: '36π', explanation: 'V = πr²h = π · 9 · 4 = 36π.' },
+          { type: 'choice', q: 'Найдите площадь поверхности шара радиуса 2 см', options: ['8π', '12π', '16π', '32π'], answer: '16π', explanation: 'A = 4πr² = 4π · 4 = 16π.' },
+          { type: 'choice', q: 'Найдите объём шара радиуса 3 см', options: ['12π', '24π', '36π', '48π'], answer: '36π', explanation: 'V = (4/3)πr³ = (4/3)π · 27 = 36π.' },
+          { type: 'choice', q: 'Конус: r = 2 см, h = 6 см. Найдите объём', options: ['8π', '16π', '24π', '32π'], answer: '8π', explanation: 'V = (1/3)πr²h = (1/3)π · 4 · 6 = 8π.' },
+          { type: 'choice', q: 'Цилиндр: r = 2 см, h = 3 см. Найдите объём', options: ['6π', '12π', '18π', '24π'], answer: '12π', explanation: 'V = πr²h = π · 4 · 3 = 12π.' },
+
+          { type: 'input', q: 'Найдите объём куба со стороной 5 см', answerText: '125', placeholder: 'Введите итоговый ответ', explanation: 'V = a³ = 5³ = 125.' },
+          { type: 'input', q: 'Найдите площадь полной поверхности куба со стороной 6 см', answerText: '216', placeholder: 'Введите итоговый ответ', explanation: 'A = 6a² = 6 · 36 = 216.' },
+          { type: 'input', q: 'Найдите объём прямоугольного параллелепипеда 3 × 4 × 5', answerText: '60', placeholder: 'Введите итоговый ответ', explanation: 'V = abc = 3 · 4 · 5 = 60.' },
+          { type: 'input', q: 'Найдите площадь полной поверхности прямоугольного параллелепипеда 2 × 3 × 4', answerText: '52', placeholder: 'Введите итоговый ответ', explanation: 'A = 2(ab + bc + ac) = 2(6 + 12 + 8) = 52.' },
+          { type: 'input', q: 'Найдите объём цилиндра при r = 3 см и h = 7 см', answerText: '63π', placeholder: 'Введите итоговый ответ', explanation: 'V = πr²h = π · 9 · 7 = 63π.' },
+          { type: 'input', q: 'Найдите площадь полной поверхности цилиндра при r = 2 см и h = 10 см', answerText: '48π', placeholder: 'Введите итоговый ответ', explanation: 'A = 2πr(r + h) = 2π · 2 · 12 = 48π.' },
+          { type: 'input', q: 'Найдите объём конуса при r = 4 см и h = 6 см', answerText: '32π', placeholder: 'Введите итоговый ответ', explanation: 'V = (1/3)πr²h = (1/3)π · 16 · 6 = 32π.' },
+          { type: 'input', q: 'Найдите боковую поверхность конуса при r = 3 см и l = 5 см', answerText: '15π', placeholder: 'Введите итоговый ответ', explanation: 'Aбок = πrl = π · 3 · 5 = 15π.' },
+          { type: 'input', q: 'Найдите объём шара радиуса 2 см', answerText: '32π/3', placeholder: 'Введите итоговый ответ', explanation: 'V = (4/3)πr³ = (4/3)π · 8 = 32π/3.' },
+          { type: 'input', q: 'Найдите площадь поверхности шара радиуса 5 см', answerText: '100π', placeholder: 'Введите итоговый ответ', explanation: 'A = 4πr² = 4π · 25 = 100π.' }
+        ]
+      },
+      {
+        id: 11,
+        title: 'Задание 11. Упрощение алгебраических отношений',
+        theme: 'Формулы сокращённого умножения и разложение квадратного трёхчлена',
+        theory: [
+          'Формулы сокращённого умножения: (a + b)² = a² + 2ab + b², (a - b)² = a² - 2ab + b², a² - b² = (a - b)(a + b).',
+          'Также полезны формулы: a³ + b³ = (a + b)(a² - ab + b²), a³ - b³ = (a - b)(a² + ab + b²).',
+          'Разложение квадратного трёхчлена: ax² + bx + c = a(x - x₁)(x - x₂), если у трёхчлена есть корни x₁ и x₂.',
+          'Перед упрощением выражения сначала ищи общий множитель, затем проверяй формулы сокращённого умножения.',
+          'После разложения на множители всегда сокращай только одинаковые множители в числителе и знаменателе.'
+        ],
+        tips: [
+          'Сначала разложи числитель и знаменатель на множители.',
+          'Ищи общий множитель перед применением формул.',
+          'Если видишь выражение вида x² - a², сразу применяй разность квадратов.',
+          'Если видишь x² ± 2ax + a², это квадрат суммы или квадрат разности.',
+          'Квадратный трёхчлен удобно раскладывать через корни или подбор множителей.'
+        ],
+        examples: [
+          { q: 'Пример: упростить (x² - 9) / (x - 3)', s: ['Разлагаем числитель: x² - 9 = (x - 3)(x + 3).', 'Сокращаем общий множитель x - 3.', 'Получаем x + 3.'], a: 'x + 3' },
+          { q: 'Пример: разложить x² - 5x + 6', s: ['Подбираем два числа, произведение которых 6, а сумма -5.', 'Это числа -2 и -3.', 'Получаем x² - 5x + 6 = (x - 2)(x - 3).'], a: '(x - 2)(x - 3)' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'Упростите: (x² - 16) / (x - 4)', options: ['x - 4', 'x + 4', 'x² + 4', '16'], answer: 'x + 4', explanation: 'x² - 16 = (x - 4)(x + 4).' },
+          { type: 'choice', q: 'Разложите на множители: x² - 9', options: ['(x - 9)(x + 1)', '(x - 3)(x + 3)', '(x - 3)²', '(x + 3)²'], answer: '(x - 3)(x + 3)', explanation: 'Это разность квадратов.' },
+          { type: 'choice', q: 'Разложите на множители: x² + 6x + 9', options: ['(x + 9)²', '(x + 3)²', '(x - 3)²', '(x + 1)(x + 9)'], answer: '(x + 3)²', explanation: 'Это квадрат суммы.' },
+          { type: 'choice', q: 'Разложите квадратный трёхчлен: x² - 7x + 12', options: ['(x - 3)(x - 4)', '(x + 3)(x + 4)', '(x - 6)(x - 2)', '(x - 12)(x + 1)'], answer: '(x - 3)(x - 4)', explanation: 'Нужны числа 3 и 4.' },
+          { type: 'choice', q: 'Упростите: (x² - 25) / (x + 5)', options: ['x + 5', 'x - 5', '25', 'x² - 5'], answer: 'x - 5', explanation: 'x² - 25 = (x - 5)(x + 5).' },
+
+          { type: 'input', q: 'Упростите: (x² - 4) / (x - 2)', answerText: 'x+2', placeholder: 'Введите итоговый ответ', explanation: 'x² - 4 = (x - 2)(x + 2).' },
+          { type: 'input', q: 'Упростите: (x² - 1) / (x - 1)', answerText: 'x+1', placeholder: 'Введите итоговый ответ', explanation: 'x² - 1 = (x - 1)(x + 1).' },
+          { type: 'input', q: 'Разложите на множители: x² - 10x + 25', answerText: '(x-5)²', placeholder: 'Введите итоговый ответ', explanation: 'Это квадрат разности.' },
+          { type: 'input', q: 'Разложите на множители: x² + 8x + 16', answerText: '(x+4)²', placeholder: 'Введите итоговый ответ', explanation: 'Это квадрат суммы.' },
+          { type: 'input', q: 'Разложите на множители: x² - 13x + 40', answerText: '(x-5)(x-8)', placeholder: 'Введите итоговый ответ', explanation: 'Нужны числа 5 и 8.' },
+          { type: 'input', q: 'Разложите на множители: x² - 3x - 10', answerText: '(x-5)(x+2)', placeholder: 'Введите итоговый ответ', explanation: 'Нужны числа -5 и 2.' },
+          { type: 'input', q: 'Упростите: (x² - 49) / (x - 7)', answerText: 'x+7', placeholder: 'Введите итоговый ответ', explanation: 'x² - 49 = (x - 7)(x + 7).' },
+          { type: 'input', q: 'Упростите: (x² + 2x + 1) / (x + 1)', answerText: 'x+1', placeholder: 'Введите итоговый ответ', explanation: 'x² + 2x + 1 = (x + 1)².' },
+          { type: 'input', q: 'Вынесите общий множитель: 3x² - 12x', answerText: '3x(x-4)', placeholder: 'Введите итоговый ответ', explanation: 'Общий множитель 3x.' },
+          { type: 'input', q: 'Разложите на множители: 4x² - 9', answerText: '(2x-3)(2x+3)', placeholder: 'Введите итоговый ответ', explanation: 'Это разность квадратов.' },
+          { type: 'input', q: 'Разложите на множители: 2x² + 4x + 2', answerText: '2(x+1)²', placeholder: 'Введите итоговый ответ', explanation: 'Сначала выносим 2, затем получаем квадрат суммы.' },
+          { type: 'input', q: 'Упростите: (x² - 6x + 9) / (x - 3)', answerText: 'x-3', placeholder: 'Введите итоговый ответ', explanation: 'x² - 6x + 9 = (x - 3)².' },
+          { type: 'input', q: 'Разложите на множители: x² - 2x - 3', answerText: '(x-3)(x+1)', placeholder: 'Введите итоговый ответ', explanation: 'Нужны числа -3 и 1.' },
+          { type: 'input', q: 'Упростите: (x³ - 8) / (x - 2)', answerText: 'x²+2x+4', placeholder: 'Введите итоговый ответ', explanation: 'Используем формулу разности кубов: x³ - 8 = (x - 2)(x² + 2x + 4).' },
+          { type: 'input', q: 'Разложите на множители: x³ + 27', answerText: '(x+3)(x²-3x+9)', placeholder: 'Введите итоговый ответ', explanation: 'Используем формулу суммы кубов.' }
+        ]
+      },
+      {
+        id: 12,
+        title: 'Задание 12. Линейная и квадратичная функция с параметром',
+        theme: 'Возрастание и убывание, ветви параболы, вершина параболы',
+        theory: [
+          'Линейная функция имеет вид y = kx + b. Она возрастает при k > 0, убывает при k < 0 и является постоянной при k = 0.',
+          'Если в линейной функции коэффициент при x содержит параметр, нужно исследовать знак этого коэффициента.',
+          'Квадратичная функция имеет вид y = ax² + bx + c. Если a > 0, ветви параболы направлены вверх; если a < 0 — вниз.',
+          'Координата вершины параболы вычисляется по формуле x₀ = -b / (2a), а затем y₀ = f(x₀).',
+          'Если коэффициент a зависит от параметра, нужно отдельно указать, при каких значениях параметра парабола направлена вверх или вниз.'
+        ],
+        tips: [
+          'Для линейной функции смотри только на знак коэффициента при x.',
+          'Если коэффициент записан через параметр, решай простое неравенство относительно параметра.',
+          'Для квадратичной функции сначала проверь знак коэффициента при x².',
+          'Чтобы найти вершину параболы, сначала вычисли x₀ = -b / (2a), затем подставь найденное значение в функцию.',
+          'В ответах к задачам с параметром обязательно записывай условие: p > 0, p < 2 и так далее.'
+        ],
+        examples: [
+          { q: 'Пример: при каких p функция y = px + 4 возрастает?', s: ['Линейная функция возрастает, если коэффициент при x положителен.', 'Здесь коэффициент при x равен p.', 'Следовательно, нужно условие p > 0.'], a: 'p > 0' },
+          { q: 'Пример: найти вершину параболы y = x² - 6x + 5', s: ['Для функции a = 1, b = -6.', 'Вычисляем x₀ = -b / (2a) = 6 / 2 = 3.', 'Подставляем: y₀ = 3² - 6·3 + 5 = 9 - 18 + 5 = -4.', 'Вершина параболы имеет координаты (3; -4).'], a: '(3; -4)' }
+        ],
+        tasks: [
+          { type: 'choice', q: 'При каком k функция y = kx возрастает?', options: ['k > 0', 'k < 0', 'k = 0', 'при любом k'], answer: 'k > 0', explanation: 'Линейная функция возрастает при положительном коэффициенте при x.' },
+          { type: 'choice', q: 'При каком a ветви параболы y = ax² направлены вверх?', options: ['a < 0', 'a > 0', 'a = 0', 'это не зависит от a'], answer: 'a > 0', explanation: 'Если a > 0, ветви параболы направлены вверх.' },
+          { type: 'choice', q: 'Найдите абсциссу вершины параболы y = x² - 4x', options: ['2', '4', '-2', '1'], answer: '2', explanation: 'x₀ = -b / (2a) = 4 / 2 = 2.' },
+          { type: 'choice', q: 'Функция y = -2x убывает', options: ['всегда', 'никогда', 'только при x > 0', 'только при x < 0'], answer: 'всегда', explanation: 'Коэффициент при x отрицательный, значит функция убывает на всей области определения.' },
+          { type: 'choice', q: 'Парабола y = -x² направлена', options: ['вверх', 'вниз', 'вправо', 'влево'], answer: 'вниз', explanation: 'Коэффициент a = -1 < 0.' },
+
+          { type: 'input', q: 'При каком k функция y = kx + 3 возрастает?', answerText: 'k>0', placeholder: 'Введите итоговый ответ', explanation: 'Функция возрастает при положительном коэффициенте при x.' },
+          { type: 'input', q: 'При каком k функция y = kx - 5 убывает?', answerText: 'k<0', placeholder: 'Введите итоговый ответ', explanation: 'Функция убывает при отрицательном коэффициенте при x.' },
+          { type: 'input', q: 'Найдите вершину параболы y = x² - 6x + 5', answerText: '(3;-4)', placeholder: 'Введите итоговый ответ', explanation: 'x₀ = 3, y₀ = -4.' },
+          { type: 'input', q: 'Найдите вершину параболы y = 2x² - 4x', answerText: '(1;-2)', placeholder: 'Введите итоговый ответ', explanation: 'x₀ = 1, y₀ = -2.' },
+          { type: 'input', q: 'Определите направление ветвей параболы y = -3x² + 2x. Введите одно слово', answerText: 'вниз', placeholder: 'Введите итоговый ответ', explanation: 'Коэффициент при x² отрицательный.' }
+        ]
+      },
+
+      {
+        id: 13,
+        title: 'Финальные тесты',
+        theme: 'Итоговые тесты с ручным вводом ответов и проверкой в конце',
+        theory: [
+          'В этом разделе ученик проходит готовый итоговый тест целиком, а ответы вводит вручную в поля.',
+          'Во время выполнения теста правильные ответы не показываются.',
+          'После нажатия кнопки «Завершить тест» сайт показывает количество правильных ответов, набранные баллы и полный список верных ответов.',
+          'Учитель может использовать этот раздел как итоговую проверку по всему курсу.'
+        ],
+        tips: [
+          'Сначала реши весь тест на черновике, затем аккуратно внеси ответы в поля.',
+          'Если в задании требуется число, вводи только итоговое значение без лишних слов.',
+          'Если ответ содержит π, вводи его в виде 20π, 36π, 32π/3 и так далее.',
+          'После завершения теста проверь свои ошибки по выданному ключу ответов.'
+        ],
+        examples: [
+          { q: 'Как работать с финальным тестом', s: ['Открой тест и последовательно реши все задания.', 'Вводи ответы вручную в каждое поле.', 'После заполнения всех полей нажми «Завершить тест».', 'Только после этого появятся правильные ответы и итоговый результат.'], a: 'Ответы открываются после завершения теста.' }
+        ],
+        tasks: [
+          { type: 'final_test', testId: 'final-1', testTitle: 'Финальный тест №1', questions: [
+            { q: '1. Вычислите: a = -5 + 8', answerText: '3' },
+            { q: '2. Вычислите: b = (-2)^4', answerText: '16' },
+            { q: '3. Найдите значение b / a', answerText: '16/3' },
+            { q: '4. Решите уравнение: 2x² - 3x - 2 = 0. Запишите меньший корень', answerText: '-1/2' },
+            { q: '5. Число увеличили на 20% и получили 72. Найдите исходное число', answerText: '60' },
+            { q: '6. Точка M(1;3) принадлежит графику f(x)=x²+px+q, где p=2. Найдите q', answerText: '0' },
+            { q: '7. Найдите наименьшее целое решение неравенства x²-2x < (x+1)²', answerText: '-1' },
+            { q: '8. Вычислите: (3² - 2)·2', answerText: '14' },
+            { q: '9. Площадь прямоугольного треугольника с катетами 6 и 8', answerText: '24' },
+            { q: '10. В тесте 20 вопросов. За верный ответ +5, за неверный -2. Ученик набрал 60 баллов. Сколько правильных ответов?', answerText: '14' },
+            { q: '11. Найдите объём прямоугольного параллелепипеда 3×4×5', answerText: '60' },
+            { q: '12. Сократите дробь (x²-9)/(x²-3x). Введите результат', answerText: '(x+3)/x' },
+            { q: '13. Для функции f(x) = -x² + 2x + m максимальное значение равно 3. Найдите m', answerText: '2' }
+          ]},
+          { type: 'final_test', testId: 'final-2', testTitle: 'Финальный тест №2', questions: [
+            { q: '1. Вычислите: a = 6 - 9', answerText: '-3' },
+            { q: '2. Вычислите: b = (-3)^3', answerText: '-27' },
+            { q: '3. Найдите значение b / a', answerText: '9' },
+            { q: '4. Решите уравнение x² - 7x + 10 = 0. Запишите больший корень', answerText: '5' },
+            { q: '5. Цена уменьшилась на 25% и стала 60 леев. Найдите первоначальную цену', answerText: '80' },
+            { q: '6. Точка M(2;6) принадлежит графику y = x² + px + q, где p=1. Найдите q', answerText: '0' },
+            { q: '7. Решите x² - 4x ≤ (x+2)². Найдите наименьшее целое решение', answerText: '-1' },
+            { q: '8. Вставьте знак между 12 и 2³: <, > или =', answerText: '>' },
+            { q: '9. Площадь ромба со стороной 6 см и углом 30°', answerText: '18' },
+            { q: '10. Первый автомобиль шёл 3 ч, второй 4 ч, первый быстрее на 10 км/ч, путь одинаковый. Найдите скорость второго', answerText: '30' },
+            { q: '11. Найдите объём конуса с r=3 и h=4', answerText: '12π' },
+            { q: '12. Сократите дробь (x²-4)/(x²-2x). Введите результат', answerText: '(x+2)/x' },
+            { q: '13. Для функции y = x² + mx + 1 ордината вершины равна 0. Найдите одно значение m > 0', answerText: '2' }
+          ]}
+        ]
+      }
+    ];
+
+    const EXTRA_TASKS = {
+      1: {
+        choice: [
+          { type: 'choice', q: 'Вычисли: -15 + 9', options: ['-6', '6', '-24', '24'], answer: '-6', explanation: 'От -15 поднимаемся на 9.' },
+          { type: 'choice', q: 'Сократи дробь 18/24', options: ['3/4', '4/3', '6/8', '2/3'], answer: '3/4', explanation: 'Делим числитель и знаменатель на 6.' },
+          { type: 'choice', q: 'Вычисли: 2/7 + 3/7', options: ['5/7', '6/14', '1', '5/14'], answer: '5/7', explanation: 'Складываем числители при одинаковом знаменателе.' },
+          { type: 'choice', q: 'Вычисли: 5/6 - 1/3', options: ['1/2', '2/3', '1/3', '4/6'], answer: '1/2', explanation: '1/3 = 2/6, получаем 3/6.' },
+          { type: 'choice', q: 'Вычисли: 2/5 · 15', options: ['6', '5', '7', '8'], answer: '6', explanation: '15·2/5 = 30/5 = 6.' },
+          { type: 'choice', q: 'Преобразуй 1,25 в обыкновенную дробь', options: ['5/4', '125/10', '1/4', '4/5'], answer: '5/4', explanation: '1,25 = 125/100 = 5/4.' }
+        ],
+        input: [
+          { type: 'input', q: 'Реши: -12 + 5 = ?', answerText: '-7', placeholder: 'Введите итоговый ответ', explanation: 'От -12 поднимаемся на 5.' },
+          { type: 'input', q: 'Сократи дробь 16/20', answerText: '4/5', placeholder: 'Введите итоговый ответ', explanation: 'Делим числитель и знаменатель на 4.' },
+          { type: 'input', q: 'Вычисли: 1/2 + 1/4', answerText: '3/4', placeholder: 'Введите итоговый ответ', explanation: '1/2 = 2/4, сумма равна 3/4.' },
+          { type: 'input', q: 'Вычисли: 7/8 - 1/4', answerText: '5/8', placeholder: 'Введите итоговый ответ', explanation: '1/4 = 2/8.' },
+          { type: 'input', q: 'Вычисли: 3/10 · 20', answerText: '6', placeholder: 'Введите итоговый ответ', explanation: '20·3/10 = 60/10.' },
+          { type: 'input', q: 'Вычисли: 4 : 1/2', answerText: '8', placeholder: 'Введите итоговый ответ', explanation: 'Деление на 1/2 заменяем умножением на 2.' },
+          { type: 'input', q: 'Преобразуй 0,2 в обыкновенную дробь', answerText: '1/5', placeholder: 'Введите итоговый ответ', explanation: '0,2 = 2/10 = 1/5.' },
+          { type: 'input', q: 'Преобразуй 2,5 в обыкновенную дробь', answerText: '5/2', placeholder: 'Введите итоговый ответ', explanation: '2,5 = 25/10 = 5/2.' },
+          { type: 'input', q: 'Вычисли: 9 - 14 = ?', answerText: '-5', placeholder: 'Введите итоговый ответ', explanation: '9 - 14 = -5.' }
+        ]
+      },
+      2: {
+        choice: [
+          { type: 'choice', q: 'Угловой коэффициент функции y = 6x - 1 равен', options: ['6', '-1', '1', '-6'], answer: '6', explanation: 'Коэффициент при x равен 6.' },
+          { type: 'choice', q: 'Функция y = -7x + 3', options: ['убывает', 'возрастает', 'постоянна', 'не имеет графика'], answer: 'убывает', explanation: 'k < 0.' },
+          { type: 'choice', q: 'Нуль функции y = x + 9 равен', options: ['-9', '9', '1', '0'], answer: '-9', explanation: 'x + 9 = 0.' },
+          { type: 'choice', q: 'Ордината пересечения с Oy у функции y = -2x + 8', options: ['8', '-2', '-8', '2'], answer: '8', explanation: 'Это число b.' },
+          { type: 'choice', q: 'Если k = 0, то функция y = kx + b', options: ['постоянная', 'возрастает', 'убывает', 'квадратичная'], answer: 'постоянная', explanation: 'При k = 0 имеем y = b.' },
+          { type: 'choice', q: 'Нуль функции y = 4x - 12 равен', options: ['3', '-3', '4', '12'], answer: '3', explanation: '4x = 12.' }
+        ],
+        input: [
+          { type: 'input', q: 'Найди угловой коэффициент функции y = -5x + 2', answerText: '-5', placeholder: 'Введите итоговый ответ', explanation: 'Это коэффициент при x.' },
+          { type: 'input', q: 'Найди нуль функции y = 3x - 12', answerText: '4', placeholder: 'Введите итоговый ответ', explanation: '3x - 12 = 0.' },
+          { type: 'input', q: 'Определи ординату пересечения функции y = x + 11 с Oy', answerText: '11', placeholder: 'Введите итоговый ответ', explanation: 'Это число b.' },
+          { type: 'input', q: 'Функция y = -8x + 1 возрастает или убывает? Введи одно слово', answerText: 'убывает', placeholder: 'Введите итоговый ответ', explanation: 'k < 0.' },
+          { type: 'input', q: 'Найди значение функции y = 2x + 3 при x = 4', answerText: '11', placeholder: 'Введите итоговый ответ', explanation: '2·4 + 3 = 11.' },
+          { type: 'input', q: 'Найди значение функции y = -x + 5 при x = -3', answerText: '8', placeholder: 'Введите итоговый ответ', explanation: '-(-3) + 5 = 8.' },
+          { type: 'input', q: 'Найди нуль функции y = -2x + 10', answerText: '5', placeholder: 'Введите итоговый ответ', explanation: '-2x + 10 = 0.' },
+          { type: 'input', q: 'Введи знак коэффициента k для функции y = 9x - 4: положительный или отрицательный', answerText: 'положительный', placeholder: 'Введите итоговый ответ', explanation: '9 > 0.' },
+          { type: 'input', q: 'Функция y = 0x + 7 возрастает, убывает или постоянная? Введи одно слово', answerText: 'постоянная', placeholder: 'Введите итоговый ответ', explanation: 'При k = 0 функция постоянная.' }
+        ]
+      },
+      3: {
+        choice: [
+          { type: 'choice', q: 'Если a < 0, то парабола направлена', options: ['вниз', 'вверх', 'вправо', 'влево'], answer: 'вниз', explanation: 'Знак a определяет направление ветвей.' },
+          { type: 'choice', q: 'Количество нулей функции y = x² + 1', options: ['0', '1', '2', '3'], answer: '0', explanation: 'D < 0.' },
+          { type: 'choice', q: 'Количество нулей функции y = x² - 6x + 9', options: ['1', '0', '2', '3'], answer: '1', explanation: 'D = 0.' },
+          { type: 'choice', q: 'Функция y = x² + 2 имеет', options: ['минимум', 'максимум', 'не имеет экстремума', 'две вершины'], answer: 'минимум', explanation: 'a > 0.' },
+          { type: 'choice', q: 'Произведение корней уравнения x² - 4x + 3 = 0 равно', options: ['3', '4', '1', '-3'], answer: '3', explanation: 'По Виету c/a = 3.' },
+          { type: 'choice', q: 'Сумма корней уравнения x² - 7x + 10 = 0 равна', options: ['7', '10', '-7', '-10'], answer: '7', explanation: 'По Виету -b/a = 7.' }
+        ],
+        input: [
+          { type: 'input', q: 'Найди количество нулей функции y = x² + 5', answerText: '0', placeholder: 'Введите итоговый ответ', explanation: 'D < 0.' },
+          { type: 'input', q: 'Найди количество нулей функции y = x² - 2x + 1', answerText: '1', placeholder: 'Введите итоговый ответ', explanation: 'D = 0.' },
+          { type: 'input', q: 'Функция y = x² - 4 имеет минимум или максимум? Введи одно слово', answerText: 'минимум', placeholder: 'Введите итоговый ответ', explanation: 'a = 1 > 0.' },
+          { type: 'input', q: 'Функция y = -x² + 9 имеет минимум или максимум? Введи одно слово', answerText: 'максимум', placeholder: 'Введите итоговый ответ', explanation: 'a = -1 < 0.' },
+          { type: 'input', q: 'Найди произведение корней уравнения x² - 3x + 2 = 0', answerText: '2', placeholder: 'Введите итоговый ответ', explanation: 'c/a = 2.' },
+          { type: 'input', q: 'Найди сумму корней уравнения x² - x - 6 = 0', answerText: '1', placeholder: 'Введите итоговый ответ', explanation: '-b/a = 1.' },
+          { type: 'input', q: 'Для функции y = -2x² + 5 ветви направлены вверх или вниз? Введи одно слово', answerText: 'вниз', placeholder: 'Введите итоговый ответ', explanation: 'a < 0.' },
+          { type: 'input', q: 'Для функции y = 4x² + x ветви направлены вверх или вниз? Введи одно слово', answerText: 'вверх', placeholder: 'Введите итоговый ответ', explanation: 'a > 0.' },
+          { type: 'input', q: 'Найди количество нулей функции y = x² - 1', answerText: '2', placeholder: 'Введите итоговый ответ', explanation: 'Функция имеет два корня: -1 и 1.' }
+        ]
+      },
+      4: {
+        choice: [
+          { type: 'choice', q: 'Найди 15% от 200', options: ['30', '20', '15', '35'], answer: '30', explanation: '0,15·200 = 30.' },
+          { type: 'choice', q: 'Найди 40% от 90', options: ['36', '40', '45', '30'], answer: '36', explanation: '0,4·90 = 36.' },
+          { type: 'choice', q: 'Найди число, если 50% от него равны 60', options: ['120', '30', '100', '110'], answer: '120', explanation: 'Половина числа равна 60.' },
+          { type: 'choice', q: '36 учащихся писали тест, 27 прошли. Какой это процент?', options: ['75%', '25%', '60%', '80%'], answer: '75%', explanation: '27/36 = 0,75.' },
+          { type: 'choice', q: 'Для 10 деталей нужно 3,5 кг металла. Для 20 деталей нужно', options: ['7 кг', '6 кг', '5 кг', '8 кг'], answer: '7 кг', explanation: 'Прямая пропорциональность.' },
+          { type: 'choice', q: '3 кг груш стоят 72 лея. 1 кг стоит', options: ['24', '18', '36', '12'], answer: '24', explanation: '72 : 3 = 24.' }
+        ],
+        input: [
+          { type: 'input', q: 'Найди 10% от 450', answerText: '45', placeholder: 'Введите итоговый ответ', explanation: '1/10 от 450.' },
+          { type: 'input', q: 'Найди 5% от 300', answerText: '15', placeholder: 'Введите итоговый ответ', explanation: '0,05·300 = 15.' },
+          { type: 'input', q: 'Найди число, если 25% от него равны 50', answerText: '200', placeholder: 'Введите итоговый ответ', explanation: 'Четверть числа равна 50.' },
+          { type: 'input', q: 'Найди число, если 10% от него равны 8', answerText: '80', placeholder: 'Введите итоговый ответ', explanation: 'x·0,1 = 8.' },
+          { type: 'input', q: 'За 5 тетрадей заплатили 50 лей. Сколько стоят 8 таких тетрадей?', answerText: '80', placeholder: 'Введите итоговый ответ', explanation: '1 тетрадь стоит 10 лей.' },
+          { type: 'input', q: 'За 2 часа турист прошёл 8 км. Сколько километров он пройдет за 5 часов при той же скорости?', answerText: '20', placeholder: 'Введите итоговый ответ', explanation: 'Скорость 4 км/ч.' },
+          { type: 'input', q: 'Цена 400 лей снизилась на 10%. Введи, на сколько леев снизилась цена', answerText: '40', placeholder: 'Введите итоговый ответ', explanation: '10% от 400 = 40.' },
+          { type: 'input', q: 'В классе 20 учеников, 5 из них девочки. Какой процент составляют девочки?', answerText: '25', placeholder: 'Введите итоговый ответ', explanation: '5/20 = 1/4 = 25%.' },
+          { type: 'input', q: 'Из 20 кг яблок получают 8 л сока. Сколько килограммов яблок нужно для 4 л?', answerText: '10', placeholder: 'Введите итоговый ответ', explanation: 'На 1 л нужно 2,5 кг яблок.' }
+        ]
+      },
+      5: {
+        choice: [
+          { type: 'choice', q: 'Вычисли: 2³ · 2²', options: ['2⁵', '2⁶', '4⁵', '2'], answer: '2⁵', explanation: 'Складываем показатели.' },
+          { type: 'choice', q: 'Вычисли: 3⁴ : 3²', options: ['3²', '3⁶', '9²', '1'], answer: '3²', explanation: 'Вычитаем показатели.' },
+          { type: 'choice', q: 'Вычисли: (2²)³', options: ['2⁶', '4⁵', '2⁵', '6²'], answer: '2⁶', explanation: 'Перемножаем показатели.' },
+          { type: 'choice', q: 'Упрости: √18', options: ['3√2', '2√3', '9√2', '6√3'], answer: '3√2', explanation: '18 = 9·2.' },
+          { type: 'choice', q: 'Сложи: 2√5 + 3√5', options: ['5√5', '6√5', '5√10', '√25'], answer: '5√5', explanation: 'Складываем коэффициенты.' },
+          { type: 'choice', q: 'Вычисли: √16 + √9', options: ['7', '25', '12', '5'], answer: '7', explanation: '4 + 3 = 7.' }
+        ],
+        input: [
+          { type: 'input', q: 'Вычисли: 10²', answerText: '100', placeholder: 'Введите итоговый ответ', explanation: '10·10 = 100.' },
+          { type: 'input', q: 'Вычисли: 4³', answerText: '64', placeholder: 'Введите итоговый ответ', explanation: '4·4·4 = 64.' },
+          { type: 'input', q: 'Вычисли: √64', answerText: '8', placeholder: 'Введите итоговый ответ', explanation: 'Арифметический корень из 64.' },
+          { type: 'input', q: 'Упрости: √20', answerText: '2√5', placeholder: 'Введите итоговый ответ', explanation: '20 = 4·5.' },
+          { type: 'input', q: 'Упрости: √32', answerText: '4√2', placeholder: 'Введите итоговый ответ', explanation: '32 = 16·2.' },
+          { type: 'input', q: 'Вычисли: 7⁰', answerText: '1', placeholder: 'Введите итоговый ответ', explanation: 'Любое ненулевое число в нулевой степени равно 1.' },
+          { type: 'input', q: 'Вычисли: 5² - 3²', answerText: '16', placeholder: 'Введите итоговый ответ', explanation: '25 - 9 = 16.' },
+          { type: 'input', q: 'Сложи: √3 + 2√3', answerText: '3√3', placeholder: 'Введите итоговый ответ', explanation: '1√3 + 2√3 = 3√3.' },
+          { type: 'input', q: 'Избавься от иррациональности: 2/√2', answerText: '√2', placeholder: 'Введите итоговый ответ', explanation: 'Домножаем на √2/√2.' }
+        ]
+      },
+      6: {
+        choice: [
+          { type: 'choice', q: 'Коэффициент a в уравнении 3x² - x + 5 = 0', options: ['3', '-1', '5', '0'], answer: '3', explanation: 'Коэффициент при x².' },
+          { type: 'choice', q: 'Коэффициент c в уравнении x² + 2x - 9 = 0', options: ['-9', '2', '1', '9'], answer: '-9', explanation: 'Свободный член.' },
+          { type: 'choice', q: 'D уравнения x² - 4x + 4 = 0', options: ['0', '4', '8', '-4'], answer: '0', explanation: '16 - 16 = 0.' },
+          { type: 'choice', q: 'D уравнения x² + 6x + 9 = 0', options: ['0', '9', '18', '-9'], answer: '0', explanation: '36 - 36 = 0.' },
+          { type: 'choice', q: 'Корни уравнения x² - 1 = 0', options: ['-1 и 1', '1 и 1', '0 и 1', 'только 1'], answer: '-1 и 1', explanation: 'x² = 1.' },
+          { type: 'choice', q: 'Если D > 0, уравнение имеет', options: ['2 корня', '1 корень', '0 корней', '3 корня'], answer: '2 корня', explanation: 'Положительный дискриминант.' }
+        ],
+        input: [
+          { type: 'input', q: 'Найди D уравнения x² - 3x + 2 = 0', answerText: '1', placeholder: 'Введите итоговый ответ', explanation: '9 - 8 = 1.' },
+          { type: 'input', q: 'Найди D уравнения x² + 2x + 1 = 0', answerText: '0', placeholder: 'Введите итоговый ответ', explanation: '4 - 4 = 0.' },
+          { type: 'input', q: 'Найди больший корень уравнения x² - 5x + 6 = 0', answerText: '3', placeholder: 'Введите итоговый ответ', explanation: 'Корни 2 и 3.' },
+          { type: 'input', q: 'Найди меньший корень уравнения x² - x - 6 = 0', answerText: '-2', placeholder: 'Введите итоговый ответ', explanation: 'Корни -2 и 3.' },
+          { type: 'input', q: 'Сколько действительных корней имеет уравнение x² + 9 = 0?', answerText: '0', placeholder: 'Введите итоговый ответ', explanation: 'D < 0.' },
+          { type: 'input', q: 'Сколько действительных корней имеет уравнение x² - 10x + 25 = 0?', answerText: '1', placeholder: 'Введите итоговый ответ', explanation: 'D = 0.' },
+          { type: 'input', q: 'Найди коэффициент b в уравнении x² - 8x + 7 = 0', answerText: '-8', placeholder: 'Введите итоговый ответ', explanation: 'Коэффициент при x.' },
+          { type: 'input', q: 'Найди коэффициент c в уравнении 2x² + x - 3 = 0', answerText: '-3', placeholder: 'Введите итоговый ответ', explanation: 'Свободный член.' },
+          { type: 'input', q: 'Найди корень уравнения x² - 6x + 9 = 0', answerText: '3', placeholder: 'Введите итоговый ответ', explanation: 'Это полный квадрат.' }
+        ]
+      },
+      7: {
+        choice: [
+          { type: 'choice', q: 'Если одно число на 5 больше другого y, то оно равно', options: ['y + 5', '5 - y', '2y', 'y - 5'], answer: 'y + 5', explanation: 'На 5 больше — значит прибавить 5.' },
+          { type: 'choice', q: 'Если большее число y, то число в 3 раза меньшее равно', options: ['y/3', '3y', 'y + 3', 'y - 3'], answer: 'y/3', explanation: 'В 3 раза меньше — делим на 3.' },
+          { type: 'choice', q: 'Если в двух ящиках x и y кг, а вместе 48 кг, то уравнение', options: ['x + y = 48', 'x - y = 48', 'xy = 48', 'x/y = 48'], answer: 'x + y = 48', explanation: 'Общая масса — сумма.' },
+          { type: 'choice', q: 'Если 3 тетради по x лей и 2 ручки по y лей стоят 27 лей, то уравнение', options: ['3x + 2y = 27', '2x + 3y = 27', '3x - 2y = 27', 'xy = 27'], answer: '3x + 2y = 27', explanation: 'Сумма стоимости.' },
+          { type: 'choice', q: 'Если x + y = 10 и x = y + 2, то x равно', options: ['6', '4', '5', '8'], answer: '6', explanation: 'Подставляем x = y + 2.' },
+          { type: 'choice', q: 'Если x + y = 10 и x = y + 2, то y равно', options: ['4', '6', '5', '8'], answer: '4', explanation: 'Решаем систему.' }
+        ],
+        input: [
+          { type: 'input', q: 'Найди меньшее число, если сумма двух чисел 14, а одно на 4 больше другого', answerText: '5', placeholder: 'Введите итоговый ответ', explanation: 'Пусть x — меньшее, тогда x + (x + 4) = 14.' },
+          { type: 'input', q: 'Найди большее число, если сумма двух чисел 14, а одно на 4 больше другого', answerText: '9', placeholder: 'Введите итоговый ответ', explanation: 'После нахождения меньшего прибавляем 4.' },
+          { type: 'input', q: 'Найди число тетрадей по 5 баллов, если всего 10 заданий, а баллов 44', answerText: '4', placeholder: 'Введите итоговый ответ', explanation: 'Пусть x — по 4 балла, y — по 5 баллов.' },
+          { type: 'input', q: 'Найди массу одного мешка, если 4 мешка весят 120 кг', answerText: '30', placeholder: 'Введите итоговый ответ', explanation: '120 : 4 = 30.' },
+          { type: 'input', q: 'Найди y из системы x + y = 9 и x = y + 1', answerText: '4', placeholder: 'Введите итоговый ответ', explanation: 'Подставляем x = y + 1.' },
+          { type: 'input', q: 'Найди x из системы x + y = 9 и x = y + 1', answerText: '5', placeholder: 'Введите итоговый ответ', explanation: 'После нахождения y получаем x = 5.' },
+          { type: 'input', q: 'В двух коробках 30 карандашей. В первой на 6 больше. Сколько во второй?', answerText: '12', placeholder: 'Введите итоговый ответ', explanation: 'Пусть во второй x, тогда в первой x + 6.' },
+          { type: 'input', q: 'В двух коробках 30 карандашей. В первой на 6 больше. Сколько в первой?', answerText: '18', placeholder: 'Введите итоговый ответ', explanation: 'После нахождения второй коробки прибавляем 6.' },
+          { type: 'input', q: 'Найди число футбольных команд, если всего 20 команд, а баскетбольных 9', answerText: '11', placeholder: 'Введите итоговый ответ', explanation: '20 - 9 = 11.' }
+        ]
+      },
+      8: {
+        choice: [
+          { type: 'choice', q: 'Фразе «не больше 8» соответствует', options: ['x ≤ 8', 'x ≥ 8', 'x < 8', 'x > 8'], answer: 'x ≤ 8', explanation: 'Не больше — меньше или равно.' },
+          { type: 'choice', q: 'Фразе «не меньше 3» соответствует', options: ['x ≥ 3', 'x ≤ 3', 'x > 3', 'x < 3'], answer: 'x ≥ 3', explanation: 'Не меньше — больше или равно.' },
+          { type: 'choice', q: 'Реши: x + 5 > 9', options: ['x > 4', 'x < 4', 'x ≥ 4', 'x ≤ 4'], answer: 'x > 4', explanation: 'Переносим 5.' },
+          { type: 'choice', q: 'Реши: 3x < 12', options: ['x < 4', 'x > 4', 'x ≤ 4', 'x ≥ 4'], answer: 'x < 4', explanation: 'Делим на 3.' },
+          { type: 'choice', q: 'Реши: -x > 2', options: ['x < -2', 'x > -2', 'x > 2', 'x < 2'], answer: 'x < -2', explanation: 'При умножении на -1 знак меняется.' },
+          { type: 'choice', q: 'Интервал решения x ≤ 1', options: ['(-∞; 1]', '(-∞; 1)', '[1; +∞)', '(1; +∞)'], answer: '(-∞; 1]', explanation: 'Точка 1 входит.' }
+        ],
+        input: [
+          { type: 'input', q: 'Найди границу решения неравенства x + 7 > 10', answerText: '3', placeholder: 'Введите итоговый ответ', explanation: 'x > 3.' },
+          { type: 'input', q: 'Найди границу решения неравенства 4x < 20', answerText: '5', placeholder: 'Введите итоговый ответ', explanation: 'x < 5.' },
+          { type: 'input', q: 'Найди границу решения неравенства -2x ≥ 8', answerText: '-4', placeholder: 'Введите итоговый ответ', explanation: 'При делении на -2 знак меняется.' },
+          { type: 'input', q: 'Фразе «не более 0» соответствует знак ≤ или ≥? Введи знак', answerText: '≤', placeholder: 'Введите итоговый ответ', explanation: 'Не более — меньше или равно.' },
+          { type: 'input', q: 'Фразе «не меньше 0» соответствует знак ≤ или ≥? Введи знак', answerText: '≥', placeholder: 'Введите итоговый ответ', explanation: 'Не меньше — больше или равно.' },
+          { type: 'input', q: 'Реши: 2x - 8 = 0. Введи корень', answerText: '4', placeholder: 'Введите итоговый ответ', explanation: '2x = 8.' },
+          { type: 'input', q: 'Найди правую границу решения неравенства 6 - x > 0', answerText: '6', placeholder: 'Введите итоговый ответ', explanation: 'x < 6.' },
+          { type: 'input', q: 'Найди левую границу решения неравенства x ≥ -5', answerText: '-5', placeholder: 'Введите итоговый ответ', explanation: 'Левая граница равна -5.' },
+          { type: 'input', q: 'Реши: 5x + 10 ≤ 0. Введи граничное значение', answerText: '-2', placeholder: 'Введите итоговый ответ', explanation: '5x ≤ -10.' }
+        ]
+      },
+      9: {
+        choice: [
+          { type: 'choice', q: 'В прямоугольном треугольнике катеты 6 и 8. Гипотенуза', options: ['10', '12', '14', '48'], answer: '10', explanation: '36 + 64 = 100.' },
+          { type: 'choice', q: 'Если гипотенуза 13, а катет 12, то второй катет', options: ['5', '1', '25', '6'], answer: '5', explanation: '169 - 144 = 25.' },
+          { type: 'choice', q: 'Все углы равностороннего треугольника', options: ['60°', '90°', '45°', '30°'], answer: '60°', explanation: '180° : 3 = 60°.' },
+          { type: 'choice', q: 'Углы при основании равнобедренного треугольника', options: ['равны', 'не равны', 'в сумме 90°', 'всегда тупые'], answer: 'равны', explanation: 'Свойство равнобедренного треугольника.' },
+          { type: 'choice', q: 'Если один острый угол прямоугольного треугольника 35°, второй равен', options: ['55°', '45°', '65°', '35°'], answer: '55°', explanation: 'Сумма острых углов 90°.' },
+          { type: 'choice', q: 'Накрест лежащие углы при параллельных прямых', options: ['равны', 'в сумме 180°', 'всегда 90°', 'не равны'], answer: 'равны', explanation: 'Свойство параллельных прямых.' }
+        ],
+        input: [
+          { type: 'input', q: 'Найди гипотенузу треугольника с катетами 8 и 15', answerText: '17', placeholder: 'Введите итоговый ответ', explanation: '64 + 225 = 289.' },
+          { type: 'input', q: 'Найди катет, если гипотенуза 10 и другой катет 6', answerText: '8', placeholder: 'Введите итоговый ответ', explanation: '100 - 36 = 64.' },
+          { type: 'input', q: 'Найди сумму двух односторонних внутренних углов при параллельных прямых', answerText: '180', placeholder: 'Введите итоговый ответ', explanation: 'Они в сумме дают 180°.' },
+          { type: 'input', q: 'Найди третий угол треугольника, если два угла 50° и 60°', answerText: '70', placeholder: 'Введите итоговый ответ', explanation: '180 - 110 = 70.' },
+          { type: 'input', q: 'Найди угол при основании равнобедренного треугольника, если вершины̆ угол 40°', answerText: '70', placeholder: 'Введите итоговый ответ', explanation: 'Оставшиеся 140° делим пополам.' },
+          { type: 'input', q: 'Найди диагональ квадрата со стороной 3. Введи ответ в виде 3√2', answerText: '3√2', placeholder: 'Введите итоговый ответ', explanation: 'Диагональ квадрата равна a√2.' },
+          { type: 'input', q: 'Найди катет равнобедренного прямоугольного треугольника, если гипотенуза 6√2', answerText: '6', placeholder: 'Введите итоговый ответ', explanation: 'Катет = гипотенуза / √2.' },
+          { type: 'input', q: 'Найди второй острый угол прямоугольного треугольника, если один равен 20°', answerText: '70', placeholder: 'Введите итоговый ответ', explanation: 'Сумма острых углов 90°.' },
+          { type: 'input', q: 'Найди периметр прямоугольного треугольника со сторонами 5, 12, 13', answerText: '30', placeholder: 'Введите итоговый ответ', explanation: 'Складываем стороны.' }
+        ]
+      },
+      10: {
+        choice: [],
+        input: []
+      },
+      11: {
+        choice: [],
+        input: []
+      },
+      12: {
+        choice: [],
+        input: [
+          { type: 'input', q: 'При каком a парабола y = ax² направлена вверх?', answerText: 'a>0', placeholder: 'Введите итоговый ответ', explanation: 'Парабола направлена вверх при a > 0.' },
+          { type: 'input', q: 'Найдите x₀ вершины параболы y = x² + 8x', answerText: '-4', placeholder: 'Введите итоговый ответ', explanation: 'x₀ = -b / (2a) = -8 / 2 = -4.' },
+          { type: 'input', q: 'Найдите y₀ вершины параболы y = x² - 2x', answerText: '-1', placeholder: 'Введите итоговый ответ', explanation: 'x₀ = 1, y₀ = 1 - 2 = -1.' },
+          { type: 'input', q: 'Определите поведение функции y = -x. Введите одно слово', answerText: 'убывает', placeholder: 'Введите итоговый ответ', explanation: 'Коэффициент при x отрицательный.' },
+          { type: 'input', q: 'При каком k функция y = kx является постоянной?', answerText: 'k=0', placeholder: 'Введите итоговый ответ', explanation: 'Постоянная функция получается при нулевом коэффициенте при x.' },
+          { type: 'input', q: 'Найдите вершину параболы y = 3x² - 12x + 1', answerText: '(2;-11)', placeholder: 'Введите итоговый ответ', explanation: 'x₀ = 2, y₀ = -11.' },
+          { type: 'input', q: 'Какой знак имеет a, если парабола направлена вниз? Введите одно слово', answerText: 'отрицательный', placeholder: 'Введите итоговый ответ', explanation: 'Если a < 0, ветви параболы направлены вниз.' },
+          { type: 'input', q: 'Найдите координаты вершины параболы y = x² - 10x + 9', answerText: '(5;-16)', placeholder: 'Введите итоговый ответ', explanation: 'x₀ = 5, y₀ = -16.' },
+          { type: 'input', q: 'При каких k функция y = (k-2)x возрастает?', answerText: 'k>2', placeholder: 'Введите итоговый ответ', explanation: 'Нужно, чтобы коэффициент k - 2 был положительным.' },
+          { type: 'input', q: 'Исследуйте функцию y = ax² при a < 0. Куда направлены ветви? Введите одно слово', answerText: 'вниз', placeholder: 'Введите итоговый ответ', explanation: 'Если a < 0, ветви направлены вниз.' }
+        ]
+      }
+    };
+
+    function buildLessonsWithRequiredCounts(baseLessons, extraTasks) {
+      return baseLessons.map((lesson) => {
+        const extra = extraTasks[lesson.id] || { choice: [], input: [] };
+        const choiceBase = lesson.tasks.filter((task) => task.type === 'choice');
+        const inputBase = lesson.tasks.filter((task) => task.type === 'input');
+        if (lesson.id === 13) {
+          return lesson;
+        }
+        const requiredChoice = lesson.id === 12 ? 5 : 10;
+        const requiredInput = lesson.id === 12 ? 15 : 10;
+        const mergedChoice = [...choiceBase, ...extra.choice].slice(0, requiredChoice);
+        const mergedInput = [...inputBase, ...extra.input].slice(0, requiredInput);
+        return {
+          ...lesson,
+          tasks: [...mergedChoice, ...mergedInput]
+        };
+      });
+      attachMathBars(container);
+    }
+
+    const LESSONS_DATA = buildLessonsWithRequiredCounts(LESSONS, EXTRA_TASKS);
+
+    let state = loadState();
+    let currentStudent = null;
+
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { students: {} };
+      } catch (error) {
+        return { students: {} };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach((section) => section.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach((button) => button.classList.remove('active'));
+      const section = document.getElementById(id);
+      if (section) section.classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach((button) => {
+        if (button.dataset.target === id) button.classList.add('active');
+      });
+    }
+
+    document.querySelectorAll('.nav-btn').forEach((button) => {
+      button.addEventListener('click', () => showSection(button.dataset.target));
+    });
+
+    function getStudentRecord(name, className) {
+      if (!state.students[name]) {
+        state.students[name] = {
+          name,
+          className,
+          score: 0,
+          attempts: 0,
+          correct: 0,
+          solved: {},
+          submissions: {},
+          lastActive: new Date().toLocaleString('ru-RU')
+        };
+      }
+      if (!state.students[name].submissions) state.students[name].submissions = {};
+      return state.students[name];
+    }
+
+    function loginStudent() {
+      const name = document.getElementById('studentName').value.trim();
+      const className = document.getElementById('studentClass').value;
+      if (!name) return;
+      currentStudent = getStudentRecord(name, className);
+      saveState();
+      renderStudentDashboard();
+      showSection('student-dashboard');
+    }
+
+    function getTotalTasks() {
+      return LESSONS_DATA.reduce((sum, lesson) => sum + lesson.tasks.length, 0);
+    }
+
+    function getProgress(student) {
+      const solvedCount = Object.keys(student.solved || {}).length;
+      return Math.round((solvedCount / getTotalTasks()) * 100);
+    }
+
+    function getAccuracy(student) {
+      if (!student.attempts) return 0;
+      return Math.round((student.correct / student.attempts) * 100);
+    }
+
+    function getLessonCategory(lesson) {
+      const text = `${lesson.title} ${lesson.theme}`.toLowerCase();
+      if (text.includes('геометр')) return 'geometry';
+      if (text.includes('экзамен') || text.includes('финальн')) return 'exam';
+      return 'algebra';
+    }
+
+    function getLessonCategoryLabel(lesson) {
+      const category = getLessonCategory(lesson);
+      if (category === 'geometry') return 'Геометрия';
+      if (category === 'exam') return 'Экзамен';
+      return 'Алгебра';
+    }
+
+    function renderStudentDashboard() {
+      if (!currentStudent) return;
+      document.getElementById('statStudent').textContent = currentStudent.name;
+      document.getElementById('statProgress').textContent = getProgress(currentStudent) + '%';
+      document.getElementById('statScore').textContent = currentStudent.score;
+      document.getElementById('statAccuracy').textContent = getAccuracy(currentStudent) + '%';
+
+      const grid = document.getElementById('topicsGrid');
+      grid.innerHTML = '';
+
+      LESSONS_DATA.forEach((lesson) => {
+        const solvedInLesson = lesson.tasks.filter((_, index) => currentStudent.solved[`${lesson.id}-${index}`]).length;
+        const percent = Math.round((solvedInLesson / lesson.tasks.length) * 100);
+        const div = document.createElement('div');
+        const category = getLessonCategory(lesson);
+        const categoryLabel = getLessonCategoryLabel(lesson);
+        div.className = 'card topic-card';
+        div.innerHTML = `
+          <span class="topic-sheet-tag ${category}">${categoryLabel}</span>
+          <div class="topic-meta">
+            <span class="pill">Раздел ${lesson.id}</span>
+            <span class="pill">${lesson.theme}</span>
+          </div>
+          <h3>${lesson.title}</h3>
+          <div class="muted">Теория + разбор + экзаменационные задания</div>
+          <div>Выполнено: ${solvedInLesson} / ${lesson.tasks.length}</div>
+          <div class="progress-box"><div class="progress-fill" style="width:${percent}%"></div></div>
+          <button class="primary-btn">Открыть раздел</button>
+        `;
+        div.querySelector('button').onclick = () => openLesson(lesson.id);
+        grid.appendChild(div);
+      });
+    }
+
+    function normalizeAnswer(value) {
+      return String(value).trim().toLowerCase().replace(',', '.');
+    }
+
+    function createChoiceTaskBox(task, key) {
+      const box = document.createElement('div');
+      box.className = 'task-box';
+      box.innerHTML = `
+        <div><strong>Задание.</strong> ${task.q}</div>
+        <div class="options"></div>
+        <button class="primary-btn">Проверить</button>
+        <div class="feedback"></div>
+        <div class="tip-box hidden"><strong>Подсказка:</strong> ${task.explanation}</div>
+      `;
+
+      const optionsBox = box.querySelector('.options');
+      let selected = '';
+
+      task.options.forEach((option) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'option-btn';
+        btn.textContent = option;
+        btn.onclick = () => {
+          selected = option;
+          optionsBox.querySelectorAll('.option-btn').forEach((b) => b.classList.remove('selected'));
+          btn.classList.add('selected');
+        };
+        optionsBox.appendChild(btn);
+      });
+
+      box.querySelector('.primary-btn').onclick = () => {
+        if (!currentStudent || !selected) return;
+        const feedback = box.querySelector('.feedback');
+        const hint = box.querySelector('.tip-box');
+        currentStudent.attempts += 1;
+        currentStudent.lastActive = new Date().toLocaleString('ru-RU');
+        const isCorrect = normalizeAnswer(selected) === normalizeAnswer(task.answer);
+        if (isCorrect) {
+          feedback.className = 'feedback ok';
+          feedback.textContent = 'Верно!';
+          box.classList.add('correct');
+          box.classList.remove('wrong');
+          if (!currentStudent.solved[key]) {
+            currentStudent.solved[key] = true;
+            currentStudent.score += 1;
+            currentStudent.correct += 1;
+          }
+        } else {
+          feedback.className = 'feedback bad';
+          feedback.textContent = 'Неверно. Правильный ответ: ' + task.answer;
+          box.classList.add('wrong');
+          box.classList.remove('correct');
+        }
+        hint.classList.remove('hidden');
+        state.students[currentStudent.name] = currentStudent;
+        saveState();
+        renderStudentDashboard();
+      };
+
+      return box;
+    }
+
+    function createInputTaskBox(task, key, lesson) {
+      const box = document.createElement('div');
+      box.className = 'task-box';
+      box.innerHTML = `
+        <div><strong>Задание.</strong> ${task.q}</div>
+        <div class="options">
+          <label class="muted">Решение / ход работы</label>
+          <textarea class="student-work-input" rows="5" placeholder="Опиши шаги решения" style="border:1px solid var(--line); border-radius:14px; padding:12px 14px; resize:vertical;"></textarea>
+          <label class="muted">Итоговый ответ</label>
+          <input class="student-answer-input math-entry" inputmode="decimal" enterkeyhint="next" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${task.placeholder || 'Введите итоговый ответ'}" style="border:1px solid var(--line); border-radius:14px; padding:12px 14px;" /><div class="simple-math-bar"></div><div class="auto-next-hint">Enter — переход к следующему полю</div>
+        </div>
+        <button class="primary-btn">Проверить</button>
+        <div class="feedback"></div>
+        <div class="tip-box hidden"><strong>Подсказка:</strong> ${task.explanation}</div>
+      `;
+
+      box.querySelector('.primary-btn').onclick = () => {
+        if (!currentStudent) return;
+        const workValue = (box.querySelector('.student-work-input').value || '').trim();
+        const answerValue = (box.querySelector('.student-answer-input').value || '').trim();
+        if (!answerValue) return;
+
+        currentStudent.attempts += 1;
+        currentStudent.lastActive = new Date().toLocaleString('ru-RU');
+        currentStudent.submissions[key] = {
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          question: task.q,
+          work: workValue,
+          finalAnswer: answerValue,
+          expectedAnswer: task.answerText,
+          checkedAt: new Date().toLocaleString('ru-RU')
+        };
+
+        const feedback = box.querySelector('.feedback');
+        const hint = box.querySelector('.tip-box');
+        const isCorrect = normalizeAnswer(answerValue) === normalizeAnswer(task.answerText);
+        if (isCorrect) {
+          feedback.className = 'feedback ok';
+          feedback.textContent = 'Верно!';
+          box.classList.add('correct');
+          box.classList.remove('wrong');
+          if (!currentStudent.solved[key]) {
+            currentStudent.solved[key] = true;
+            currentStudent.score += 1;
+            currentStudent.correct += 1;
+          }
+        } else {
+          feedback.className = 'feedback bad';
+          feedback.textContent = 'Неверно. Правильный ответ: ' + task.answerText;
+          box.classList.add('wrong');
+          box.classList.remove('correct');
+        }
+
+        hint.classList.remove('hidden');
+        state.students[currentStudent.name] = currentStudent;
+        saveState();
+        renderStudentDashboard();
+      };
+
+      return box;
+    }
+
+
+    function createFinalTestBox(test, lesson, testIndex) {
+      const box = document.createElement('div');
+      box.className = 'task-box';
+      box.innerHTML = `
+        <div><strong>${test.testTitle}</strong></div>
+        <div class="muted" style="margin-top:6px">Введите ответы вручную. Правильные ответы откроются только после завершения всего теста.</div>
+        <div class="final-test-questions" style="display:grid; gap:12px; margin-top:14px;"></div>
+        <button class="primary-btn" style="margin-top:14px">Завершить тест</button>
+        <div class="feedback" style="margin-top:12px"></div>
+        <div class="tip-box hidden final-answers"></div>
+      `;
+      const questionsWrap = box.querySelector('.final-test-questions');
+      test.questions.forEach((item, qIndex) => {
+        const row = document.createElement('div');
+        row.className = 'example-box';
+        row.innerHTML = `
+          <div><strong>${item.q}</strong></div>
+          <label class="muted" style="display:block; margin-top:8px">Твой ответ</label>
+          <input class="final-answer-input" data-index="${qIndex}" placeholder="Введите ответ вручную" />
+        `;
+        questionsWrap.appendChild(row);
+      });
+
+      box.querySelector('.primary-btn').onclick = () => {
+        if (!currentStudent) return;
+        const inputs = [...box.querySelectorAll('.final-answer-input')];
+        let correct = 0;
+        const answersList = [];
+        const studentAnswers = [];
+        inputs.forEach((input, idx) => {
+          const value = input.value.trim();
+          studentAnswers.push(value);
+          const expected = test.questions[idx].answerText;
+          const isCorrect = normalizeAnswer(value) === normalizeAnswer(expected);
+          if (isCorrect) correct += 1;
+          answersList.push(`<li><strong>${idx + 1}.</strong> Верный ответ: ${expected}${value ? ` · Твой ответ: ${value}` : ' · Твой ответ не введён'}</li>`);
+          input.style.borderColor = isCorrect ? 'var(--ok)' : 'var(--bad)';
+        });
+
+        currentStudent.attempts += test.questions.length;
+        currentStudent.correct += correct;
+        currentStudent.score += correct;
+        currentStudent.lastActive = new Date().toLocaleString('ru-RU');
+        const key = `${lesson.id}-final-${testIndex}`;
+        currentStudent.solved[key] = true;
+        currentStudent.submissions[key] = {
+          lessonId: lesson.id,
+          lessonTitle: `${lesson.title} — ${test.testTitle}`,
+          question: 'Финальный тест завершён',
+          work: studentAnswers.map((ans, i) => `${i + 1}) ${ans || '—'}`).join('\n'),
+          finalAnswer: `${correct}/${test.questions.length}`,
+          expectedAnswer: test.questions.map((q, i) => `${i + 1}) ${q.answerText}`).join('; '),
+          checkedAt: new Date().toLocaleString('ru-RU')
+        };
+        state.students[currentStudent.name] = currentStudent;
+        saveState();
+        renderStudentDashboard();
+
+        const feedback = box.querySelector('.feedback');
+        feedback.className = 'feedback ok';
+        feedback.textContent = `Тест завершён. Правильных ответов: ${correct} из ${test.questions.length}.`;
+
+        const answers = box.querySelector('.final-answers');
+        answers.classList.remove('hidden');
+        answers.innerHTML = `<strong>Правильные ответы:</strong><ol>${answersList.join('')}</ol>`;
+      };
+
+      return box;
+    }
+
+    function openLesson(id) {
+      const lesson = LESSONS_DATA.find((item) => item.id === id);
+      if (!lesson) return;
+
+      document.getElementById('lessonTitle').textContent = lesson.title;
+      document.getElementById('lessonTheme').textContent = lesson.theme;
+
+      const theory = document.getElementById('lessonTheory');
+      theory.innerHTML = lesson.theory.map((item) => `<div class="tip-box">${item}</div>`).join('');
+
+      const tips = document.getElementById('lessonTips');
+      tips.innerHTML = lesson.tips.map((item) => `<div class="tip-box">${item}</div>`).join('');
+
+      const examples = document.getElementById('lessonExamples');
+      examples.innerHTML = lesson.examples.map((example) => `
+        <div class="example-box">
+          <strong>${example.q}</strong>
+          <ol>${example.s.map((step) => `<li>${step}</li>`).join('')}</ol>
+          <div><strong>Ответ:</strong> ${example.a}</div>
+        </div>
+      `).join('');
+
+      const tasks = document.getElementById('lessonTasks');
+      tasks.innerHTML = '';
+
+      lesson.tasks.forEach((task, index) => {
+        if (task.type === 'final_test') {
+          tasks.appendChild(createFinalTestBox(task, lesson, index));
+          return;
+        }
+        const key = `${lesson.id}-${index}`;
+        const box = task.type === 'input'
+          ? createInputTaskBox(task, key, lesson)
+          : createChoiceTaskBox(task, key);
+        tasks.appendChild(box);
+      });
+
+      showSection('lesson-view');
+      attachMathBars(document.getElementById('lesson-view'));
+    }
+
+    function loginTeacher() {
+      const value = document.getElementById('teacherPassword').value;
+      if (value !== TEACHER_PASSWORD) return;
+      renderTeacherDashboard();
+      showSection('teacher-dashboard');
+    }
+
+    function renderTeacherDashboard() {
+      const students = Object.values(state.students);
+      document.getElementById('teacherStudents').textContent = students.length;
+      document.getElementById('teacherTopicsCount').textContent = LESSONS_DATA.length;
+      const avgProgress = students.length ? Math.round(students.reduce((sum, student) => sum + getProgress(student), 0) / students.length) : 0;
+      const avgAccuracy = students.length ? Math.round(students.reduce((sum, student) => sum + getAccuracy(student), 0) / students.length) : 0;
+      document.getElementById('teacherAvgProgress').textContent = avgProgress + '%';
+      document.getElementById('teacherAvgAccuracy').textContent = avgAccuracy + '%';
+
+      const results = document.getElementById('teacherResults');
+      results.innerHTML = '';
+
+      students.forEach((student) => {
+        const row = document.createElement('div');
+        row.className = 'teacher-row';
+        const submissions = Object.values(student.submissions || {}).slice(-3).reverse();
+        const submissionsHtml = submissions.length
+          ? submissions.map((sub) => `
+              <div class="tip-box">
+                <div><strong>${sub.lessonTitle}</strong></div>
+                <div class="muted" style="margin-top:6px">${sub.question}</div>
+                <div style="margin-top:8px"><strong>Решение / ход работы:</strong><br>${sub.work ? sub.work.replace(/\n/g, '<br>') : '<span class="muted">Не заполнено</span>'}</div>
+                <div style="margin-top:8px"><strong>Итоговый ответ:</strong> ${sub.finalAnswer}</div>
+                <div style="margin-top:6px"><strong>Правильный ответ:</strong> ${sub.expectedAnswer}</div>
+                <div class="muted" style="margin-top:6px">Проверено: ${sub.checkedAt}</div>
+              </div>
+            `).join('')
+          : '<div class="muted">Пока нет заданий с развернутым решением.</div>';
+
+        const finalTests = Object.values(student.finalTests || {}).sort((a, b) => {
+          return (b.finishedAt || '').localeCompare(a.finishedAt || '');
+        });
+        const finalTestsHtml = finalTests.length
+          ? finalTests.map((test) => `
+              <div class="tip-box">
+                <div><strong>${test.title}</strong></div>
+                <div style="margin-top:8px">Результат: ${test.correct} из ${test.total}</div>
+                <div class="muted" style="margin-top:6px">Завершён: ${test.finishedAt}</div>
+              </div>
+            `).join('')
+          : '<div class="muted">Финальные тесты пока не завершались.</div>';
+
+        row.innerHTML = `
+          <div><strong>${student.name}</strong> · ${student.className}</div>
+          <div class="muted">Последняя активность: ${student.lastActive}</div>
+          <div>Баллы: ${student.score} · Попытки: ${student.attempts} · Точность: ${getAccuracy(student)}%</div>
+          <div class="progress-box"><div class="progress-fill" style="width:${getProgress(student)}%"></div></div>
+          <div class="muted">Прогресс: ${getProgress(student)}%</div>
+          <div><strong>Последние задания с развернутым ответом:</strong></div>
+          ${submissionsHtml}
+          <div><strong>Финальные тесты:</strong></div>
+          ${finalTestsHtml}
+        `;
+        results.appendChild(row);
+      });
+    }
+
+
+    const FINAL_TESTS = [
+      {
+        id: 1,
+        title: 'Тест №1',
+        questions: [
+          { q: '1) a = -5 + 8; b = (-2)^4. Введите значения a, b и b/a через точку с запятой', answer: '3;16;16/3' },
+          { q: '2) В треугольнике MN ∥ AC, BM=2, AM=4, MN=3. Введите: AB/BM; AC', answer: '3;9' },
+          { q: '3) Решите уравнение 2x² - 3x - 2 = 0. Введите корни через точку с запятой', answer: '-1/2;2' },
+          { q: '4) Число увеличили на 20% и получили 72. Найдите исходное число', answer: '60' },
+          { q: '5) Точка M(1;3) принадлежит графику y = x² + px + q, где p=2. Найдите q', answer: '0' },
+          { q: '6) Найдите наименьшее целое решение неравенства x² - 2x < (x+1)²', answer: '-1' },
+          { q: '7) Вычислите (3² - 2)·2', answer: '14' },
+          { q: '8) Найдите площадь прямоугольного треугольника с катетами 6 см и 8 см', answer: '24' },
+          { q: '9) В тесте 20 вопросов. +5 за верный, -2 за неверный. Набрано 60. Сколько правильных ответов?', answer: '14' },
+          { q: '10) Прямоугольный параллелепипед 3×4×5. Найдите объём', answer: '60' },
+          { q: '11) Найдите ОДЗ и сократите дробь (x²-9)/(x²-3x). Введите: ОДЗ; сокращение', answer: 'x≠0,3;(x+3)/x' },
+          { q: '12) Для функции y = -x² + 2x + m максимальное значение равно 3. Найдите m', answer: '2' }
+        ]
+      },
+      {
+        id: 2,
+        title: 'Тест №2',
+        questions: [
+          { q: '1) a = 6 - 9; b = (-3)^3. Введите a, b и b/a через точку с запятой', answer: '-3;-27;9' },
+          { q: '2) Параллелограмм ABCD: AB=5, BC=7, ∠A=60°. Введите: ∠B; периметр', answer: '120;24' },
+          { q: '3) Решите уравнение x² - 7x + 10 = 0. Корни через точку с запятой', answer: '2;5' },
+          { q: '4) Цена уменьшилась на 25% и стала 60. Найдите первоначальную цену', answer: '80' },
+          { q: '5) Точка M(2;6) принадлежит графику y = x² + px + q, где p=1. Найдите q', answer: '0' },
+          { q: '6) Найдите наименьшее целое решение неравенства x² - 4x ≤ (x+2)²', answer: '-1' },
+          { q: '7) Сравните: √12 и 2√3. Введите знак', answer: '=' },
+          { q: '8) Ромб: сторона 6 см, угол 30°. Найдите площадь', answer: '18' },
+          { q: '9) Скорость первого на 10 км/ч больше, чем второго. В пути 3 ч и 4 ч по одному маршруту. Найдите скорости через точку с запятой', answer: '40;30' },
+          { q: '10) Конус: r=3, h=4. Найдите объём', answer: '12π' },
+          { q: '11) Найдите ОДЗ и упростите (x²-4)/(x²-2x). Введите: ОДЗ; сокращение', answer: 'x≠0,2;(x+2)/x' },
+          { q: '12) Для y = x² + mx + 1 ордината вершины равна 0. Найдите все m через точку с запятой', answer: '-2;2' }
+        ]
+      },
+      {
+        id: 3,
+        title: 'Тест №3',
+        questions: [
+          { q: '1) a = -7 + 3; b = (-4)^2. Введите a, b и b/a через точку с запятой', answer: '-4;16;-4' },
+          { q: '2) В треугольнике MN ∥ AC, BM=3, AM=6, MN=5. Найдите AC', answer: '15' },
+          { q: '3) Решите уравнение 3x² - 5x - 2 = 0. Корни через точку с запятой', answer: '-1/3;2' },
+          { q: '4) Число увеличили на 10% и получили 55. Найдите это число', answer: '50' },
+          { q: '5) Точка M(1;4) принадлежит графику y = x² + px + q, где p=1. Найдите q', answer: '2' },
+          { q: '6) Найдите наименьшее целое решение неравенства x² - x < (x+2)²', answer: '-3' },
+          { q: '7) Вычислите (2^5 - 5)·3', answer: '81' },
+          { q: '8) Найдите площадь круга радиуса 5 см', answer: '25π' },
+          { q: '9) В тесте 15 вопросов. +4 за верный, -1 за неверный. Набрано 45. Сколько правильных ответов?', answer: '12' },
+          { q: '10) Цилиндр: r=2, h=6. Найдите объём', answer: '24π' },
+          { q: '11) Найдите ОДЗ и сократите (x²-1)/(x²-x). Введите: ОДЗ; сокращение', answer: 'x≠0,1;(x+1)/x' },
+          { q: '12) Для f(x) = -x² + mx максимальное значение равно 4. Найдите m', answer: '4' }
+        ]
+      },
+      {
+        id: 4,
+        title: 'Тест №4',
+        questions: [
+          { q: '1) a = -8 + 5; b = (-5)^2. Введите a, b и b/a через точку с запятой', answer: '-3;25;-25/3' },
+          { q: '2) Параллелограмм ABCD: AB=4, BC=6, ∠A=60°. Введите: ∠B; периметр', answer: '120;20' },
+          { q: '3) Решите уравнение 4x² - 4x - 3 = 0. Корни через точку с запятой', answer: '-1/2;3/2' },
+          { q: '4) Цена увеличилась на 50% и стала 90. Найдите первоначальную цену', answer: '60' },
+          { q: '5) Точка M(1;2) принадлежит графику y = x² + px + q, где p=1. Найдите q', answer: '0' },
+          { q: '6) Найдите наименьшее целое решение неравенства x² - 3x ≤ (x+1)²', answer: '-1' },
+          { q: '7) Сравните: √18 и 3√2. Введите знак', answer: '=' },
+          { q: '8) Треугольник со сторонами 5, 5 и 6. Найдите площадь', answer: '12' },
+          { q: '9) Скорость одного велосипедиста на 3 км/ч больше. В пути 2 ч и 3 ч по одному маршруту. Найдите скорости через точку с запятой', answer: '9;6' },
+          { q: '10) Правильная четырёхугольная пирамида: сторона основания 4, высота 6. Найдите объём', answer: '32' },
+          { q: '11) Найдите ОДЗ и сократите (x²-16)/(x²-4x). Введите: ОДЗ; сокращение', answer: 'x≠0,4;(x+4)/x' },
+          { q: '12) Для f(x) = mx² + 2x + m максимальное значение равно 2. Найдите m', answer: '-1' }
+        ]
+      },
+      {
+        id: 5,
+        title: 'Тест №5',
+        questions: [
+          { q: '1) a = -10 + 6; b = (-2)^5. Введите a, b и b/a через точку с запятой', answer: '-4;-32;8' },
+          { q: '2) В треугольнике MN ∥ AC, BM=4, AM=8, MN=6. Введите: AB/BM; AC', answer: '3;18' },
+          { q: '3) Решите уравнение x² - 3x - 4 = 0. Корни через точку с запятой', answer: '-1;4' },
+          { q: '4) Цена уменьшилась на 20% и стала 80. Найдите первоначальную цену', answer: '100' },
+          { q: '5) Точка M(2;3) принадлежит графику y = x² + px + q, где p=2. Найдите q', answer: '-5' },
+          { q: '6) Найдите наименьшее целое решение неравенства x² - 2x < (x+3)²', answer: '-4' },
+          { q: '7) Вычислите (4² - 2²)·2', answer: '24' },
+          { q: '8) Найдите площадь полукруга радиуса 4 см', answer: '8π' },
+          { q: '9) В тесте 20 вопросов. +5 за верный, -2 за неверный. Набрано 50. Сколько правильных ответов?', answer: '13' },
+          { q: '10) Шар радиуса 3 см. Найдите объём', answer: '36π' },
+          { q: '11) Найдите ОДЗ и сократите (x²-25)/(x²-5x). Введите: ОДЗ; сокращение', answer: 'x≠0,5;(x+5)/x' },
+          { q: '12) Для f(x) = -x² + mx максимальное значение равно 9. Найдите m', answer: '6' }
+        ]
+      }
+    ];
+
+    function normalizeFinalTestAnswer(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/,/g, '.')
+        .replace(/−/g, '-');
+    }
+
+    function renderFinalTestsSection() {
+      const section = document.getElementById('final-tests');
+      if (!section) return;
+      section.innerHTML = `
+        <div class="card">
+          <div class="lesson-title">
+            <div>
+              <h2>Финальные тесты</h2>
+              <div class="muted">Ученик вводит ответы вручную и получает правильные ответы только после завершения всего теста.</div>
+            </div>
+            <button class="secondary-btn" onclick="showSection('student-dashboard')">Назад</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <label class="muted">Выбери тест</label>
+          <select id="finalTestSelect" style="margin-top:8px; max-width:320px;">
+            ${FINAL_TESTS.map(test => `<option value="${test.id}">${test.title}</option>`).join('')}
+          </select>
+          <button class="primary-btn" style="margin-left:10px" onclick="openFinalTest()">Открыть тест</button>
+        </div>
+        <div id="finalTestContainer" class="card" style="margin-top:18px"></div>
+      `;
+      openFinalTest();
+      attachMathBars(document.getElementById('final-tests'));
+    }
+
+    function openFinalTest() {
+      const select = document.getElementById('finalTestSelect');
+      const container = document.getElementById('finalTestContainer');
+      if (!select || !container) return;
+      const test = FINAL_TESTS.find(item => item.id === Number(select.value)) || FINAL_TESTS[0];
+      container.innerHTML = `
+        <h3>${test.title}</h3>
+        <div class="muted" style="margin-bottom:16px">Заполни все ответы и нажми «Завершить тест». До этого момента правильные ответы скрыты.</div>
+        <div id="finalQuestions"></div>
+        <button class="primary-btn" style="margin-top:16px" onclick="finishFinalTest(${test.id})">Завершить тест</button>
+        <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="secondary-btn" onclick="showOnlyFinalResult()">Показать только мой результат</button>
+        </div>
+        <div id="finalTestResult" style="margin-top:16px"></div>
+      `;
+      const questions = container.querySelector('#finalQuestions');
+      test.questions.forEach((question, index) => {
+        const box = document.createElement('div');
+        box.className = 'task-box';
+        box.innerHTML = `
+          <div><strong>${index + 1}.</strong> ${question.q}</div>
+          <div class="options" style="margin-top:10px">
+            <label class="muted">Твой ответ</label>
+            <input data-final-answer="${index}" class="math-entry" inputmode="decimal" enterkeyhint="next" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Введи ответ вручную" /><div class="simple-math-bar"></div>
+          </div>
+          <div class="tip-box hidden" data-final-correct="${index}"><strong>Правильный ответ:</strong> ${question.answer}</div>
+        `;
+        questions.appendChild(box);
+      });
+    }
+
+
+    function showOnlyFinalResult() {
+      const container = document.getElementById('finalTestContainer');
+      if (!container) return;
+      const result = document.getElementById('finalTestResult');
+      const resultHtml = result ? result.innerHTML : '<div class="tip-box">Сначала заверши тест.</div>';
+      container.innerHTML = `
+        <h3>Мой результат</h3>
+        ${resultHtml || '<div class="tip-box">Сначала заверши тест.</div>'}
+        <div style="margin-top:16px">
+          <button class="secondary-btn" onclick="renderFinalTestsSection()">Назад к тестам</button>
+        </div>
+      `;
+    }
+
+    function finishFinalTest(testId) {
+      const test = FINAL_TESTS.find(item => item.id === Number(testId));
+      if (!test) return;
+      const container = document.getElementById('finalTestContainer');
+      const inputs = container.querySelectorAll('input[data-final-answer]');
+      let correct = 0;
+      inputs.forEach((input, index) => {
+        const expected = normalizeFinalTestAnswer(test.questions[index].answer);
+        const actual = normalizeFinalTestAnswer(input.value);
+        const box = input.closest('.task-box');
+        const answerBox = container.querySelector(`[data-final-correct="${index}"]`);
+        answerBox.classList.remove('hidden');
+        if (actual === expected) {
+          correct += 1;
+          box.classList.add('correct');
+          box.classList.remove('wrong');
+        } else {
+          box.classList.add('wrong');
+          box.classList.remove('correct');
+        }
+      });
+
+      const result = document.getElementById('finalTestResult');
+      result.innerHTML = `
+        <div class="tip-box">
+          <strong>Тест завершён.</strong><br>
+          Верных ответов: ${correct} из ${test.questions.length}.<br>
+          Ниже открыты все правильные ответы.
+        </div>
+      `;
+
+      if (currentStudent) {
+        const key = `final-test-${test.id}`;
+        currentStudent.solved[key] = true;
+        currentStudent.attempts += test.questions.length;
+        currentStudent.correct += correct;
+        currentStudent.score += correct;
+        currentStudent.lastActive = new Date().toLocaleString('ru-RU');
+        if (!currentStudent.finalTests) currentStudent.finalTests = {};
+        currentStudent.finalTests[test.id] = {
+          title: test.title,
+          total: test.questions.length,
+          correct,
+          finishedAt: new Date().toLocaleString('ru-RU')
+        };
+        state.students[currentStudent.name] = currentStudent;
+        saveState();
+        renderStudentDashboard();
+      }
+    }
+
+
+
+    const SIMPLE_MATH_KEYS = ['π', '/', '√', '(', ')', '-', '+', 'x', '⌫'];
+
+    function insertIntoField(field, text) {
+      if (!field) return;
+      const start = typeof field.selectionStart === 'number' ? field.selectionStart : field.value.length;
+      const end = typeof field.selectionEnd === 'number' ? field.selectionEnd : field.value.length;
+      field.value = field.value.slice(0, start) + text + field.value.slice(end);
+      const pos = start + text.length;
+      field.focus();
+      if (typeof field.setSelectionRange === 'function') {
+        field.setSelectionRange(pos, pos);
+      }
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function attachMathBars(root = document) {
+      root.querySelectorAll('.simple-math-bar').forEach((bar) => {
+        if (bar.dataset.ready === '1') return;
+        bar.dataset.ready = '1';
+        const field = bar.previousElementSibling;
+        if (!field) return;
+        SIMPLE_MATH_KEYS.forEach((key) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'simple-math-key';
+          btn.textContent = key;
+          btn.addEventListener('click', () => {
+            if (key === '⌫') {
+              const start = typeof field.selectionStart === 'number' ? field.selectionStart : field.value.length;
+              const end = typeof field.selectionEnd === 'number' ? field.selectionEnd : field.value.length;
+              if (start !== end) {
+                field.value = field.value.slice(0, start) + field.value.slice(end);
+                field.setSelectionRange(start, start);
+              } else if (start > 0) {
+                field.value = field.value.slice(0, start - 1) + field.value.slice(end);
+                field.setSelectionRange(start - 1, start - 1);
+              }
+              field.focus();
+              field.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+              insertIntoField(field, key);
+            }
+          });
+          bar.appendChild(btn);
+        });
+      });
+    }
+
+    function focusNextField(current) {
+      const fields = Array.from(document.querySelectorAll('.section.active .math-entry'));
+      const idx = fields.indexOf(current);
+      if (idx >= 0 && idx < fields.length - 1) {
+        fields[idx + 1].focus();
+        fields[idx + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function attachAutoNext() {
+      document.addEventListener('keydown', (event) => {
+        const target = event.target;
+        if (!target || !target.matches('.math-entry')) return;
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          focusNextField(target);
+        }
+      });
+    }
+
+    function runSelfTests() {
+      const tests = [
+        {
+          name: 'normalizeAnswer trims and normalizes comma',
+          run: () => normalizeAnswer(' 3,5 ') === '3.5'
+        },
+        {
+          name: 'getStudentRecord creates submissions storage',
+          run: () => {
+            const name = '__test_student__';
+            const record = getStudentRecord(name, '9A');
+            return Boolean(record.submissions) && record.className === '9A';
+          }
+        },
+        {
+          name: 'getTotalTasks returns positive number and lessons have required task counts',
+          run: () => getTotalTasks() > 0 && LESSONS_DATA.every((lesson) => {
+            const choiceCount = lesson.tasks.filter((task) => task.type === 'choice').length;
+            const inputCount = lesson.tasks.filter((task) => task.type === 'input').length;
+            return lesson.id === 13
+              ? lesson.tasks.length === 2 && lesson.tasks.every((task) => task.type === 'final_test')
+              : lesson.id === 12
+              ? lesson.tasks.length === 20 && choiceCount === 5 && inputCount === 15
+              : lesson.tasks.length === 20 && choiceCount === 10 && inputCount === 10;
+          })
+        }
+      ];
+
+      const failed = tests.filter((test) => {
+        try {
+          return !test.run();
+        } catch (error) {
+          return true;
+        }
+      });
+
+      if (failed.length) {
+        console.warn('Self-tests failed:', failed.map((test) => test.name));
+      }
+    }
+
+    renderFinalTestsSection();
+    attachAutoNext();
+    attachMathBars(document);
+    runSelfTests();
+  </script>
+</body>
+</html>
